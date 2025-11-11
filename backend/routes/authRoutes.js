@@ -1,16 +1,12 @@
 import express from "express";
-import { loginform, registerform } from "../controllers/authcontroller.js";
-import { loginUser, registerUser } from "../controllers/authSupaBase.js";
+import { register, login, getMe } from "../controllers/authController.js";
+import { protect } from "../middleware/auth.js";
+
 const router = express.Router();
 
-router.get("/", async (req, res) => {
-  res.send("Hello from the server");
-});
+router.post("/register", register);
+router.post("/login", login);
+router.get("/me", protect, getMe);
+// router.patch("/update-password", protect, updatePassword);
 
-router.post("/authregister", registerform);
-
-router.post("/authlogin", loginform);
-
-router.post("/supabaseregister", registerUser);
-router.post("/supabaselogin", loginUser);
 export default router;

@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Venn.com Blue Border Section</title>
+    <style>
+        .blue-border-section {
+            --secondary-50: #f8fafc;
+            --secondary-200: #e2e8f0;
+            --primary-500: #006BFF;
+            --secondary-500: #4F9EFF;
+            --gray-100: #f7fafc;
+            
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: white;
+            color: #1a202c;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .blue-border-section * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        .wp-block-group {
+            box-sizing: border-box;
+        }
+        
+        .alignfull {
+            width: 100%;
+            max-width: 100%;
+        }
+        
+        .has-global-padding {
+            padding-top: 40px;
+            padding-bottom: 40px;
+        }
+        
+        .is-layout-constrained {
+            max-width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .alignwide {
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+        
+        .wp-block-venn-hero {
+            position: relative;
+        }
+        
+        .relative {
+            position: relative;
+        }
+        
+        .bg-custom-blue {
+            background-color: rgb(225 237 255) !important;
+        }
+        
+        .border {
+            border-width: 1px;
+            border-style: solid;
+        }
+        
+        .border-secondary-200 {
+           border-color: rgb(162 195 250 / var(--tw-border-opacity, 1));
+        }
+        
+        .rounded-2xl {
+            border-radius: 16px;
+        }
+        
+        @media (max-width: 1023px) {
+            .rounded-2xl {
+                border-radius: 1 !important;
+            }
+        }
+        
+        .overflow-clip {
+            overflow: clip;
+        }
+        
+        .isolate {
+            isolation: isolate;
+        }
+        
+        .min-h-[450px] {
+            min-height: 450px;
+        }
+        
+        .flex {
+            display: flex;
+        }
+        
+        .items-center {
+            align-items: center;
+        }
+        
+        .justify-center {
+            justify-content: center;
+        }
+        
+        .grid {
+            display: grid;
+            width: 100%;
+        }
+        
+        .lg\:grid-cols-2 {
+            grid-template-columns: 1fr;
+        }
+        
+        @media (min-width: 1024px) {
+            .lg\:grid-cols-2 {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .lg\:w-full {
+                width: 100%;
+            }
+            
+            .lg\:order-first {
+                order: -1;
+            }
+        }
+        
+        .max-lg\:relative {
+            position: relative;
+        }
+        
+        @media (max-width: 1023px) {
+            .max-lg\:px-6 {
+                padding-left: 24px;
+                padding-right: 24px;
+            }
+            
+            .max-lg\:pt-6 {
+                padding-top: 24px;
+            }
+            
+            .max-lg\:-mb-8 {
+                margin-bottom: -32px;
+            }
+            
+            .max-lg\:flex {
+                display: flex;
+            }
+            
+            .max-lg\:justify-center {
+                justify-content: center;
+            }
+            
+            .max-lg\:text-center {
+                text-align: center;
+            }
+        }
+        
+        .aspect-square {
+            aspect-ratio: 1 / 1;
+        }
+        
+        .object-cover {
+            object-fit: cover;
+        }
+        
+        .w-full {
+            width: 100%;
+        }
+        
+        .max-lg\:max-w-lg {
+            max-width: 512px;
+        }
+        
+        @media (min-width: 1024px) {
+            .lg\:absolute {
+                position: absolute;
+            }
+            
+            .lg\:w-\[135\%\] {
+                width: 135%;
+            }
+            
+            .lg\:max-w-none {
+                max-width: none;
+            }
+            
+            .lg\:top-1\/2 {
+                top: 50%;
+            }
+            
+            .lg\:left-0 {
+                left: 0;
+            }
+            
+            .lg\:bottom-auto {
+                bottom: auto;
+            }
+            
+            .lg\:-translate-y-1\/2 {
+                transform: translateY(-50%);
+            }
+            
+            .lg\:translate-x-0 {
+                transform: translateX(0);
+            }
+        }
+        
+        .border-white {
+            border-color: white;
+        }
+        
+        .rounded-full {
+            border-radius: 50%;
+        }
+        
+        .bg-gradient-to-tr {
+            background-image: linear-gradient(to top right, var(--primary-500), var(--secondary-500));
+        }
+        
+        .object-contain {
+            object-fit: contain;
+        }
+        
+        .absolute {
+            position: absolute;
+        }
+        
+        .lg\:w-full {
+            width: 100%;
+        }
+        
+        .lg\:top-1\/2 {
+            top: 50%;
+        }
+        
+        .lg\:left-8 {
+            left: 32px;
+        }
+        
+        .lg\:bottom-auto {
+            bottom: auto;
+        }
+        
+        .lg\:-translate-y-1\/2 {
+            transform: translateY(-50%);
+        }
+        
+        .lg\:translate-x-0 {
+            transform: translateX(0);
+        }
+        
+        .p-8 {
+            padding: 32px;
+        }
+        
+        .z-10 {
+            z-index: 10;
+        }
+        
+        .px-8 {
+            padding-left: 32px;
+            padding-right: 32px;
+        }
+        
+        @media (min-width: 640px) {
+            .sm\:px-16 {
+                padding-left: 64px;
+                padding-right: 64px;
+            }
+        }
+        
+        .is-style-h-60 {
+            height: 60px;
+        }
+        
+        .acf-innerblocks-container {
+            width: 100%;
+        }
+        
+        .is-style-rich-text {
+            max-width: 100%;
+        }
+        
+        .wp-block-heading {
+            font-size: 2rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 20px;
+            color: #1a202c;
+        }
+        
+        .blue-border-section p {
+            font-size: 1rem;
+            margin-bottom: 16px;
+            color: #4a5568;
+        }
+        
+        .wp-block-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-top: 24px;
+        }
+        
+        .wp-block-button {
+            display: inline-flex;
+        }
+        
+        .wp-block-button__link {
+            display: inline-flex;
+            align-items: center;
+            padding: 12px 24px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            gap: 8px;
+            border: none;
+        }
+        
+        .wp-block-button__link:first-child {
+            background-color: var(--primary-500);
+            color: white;
+        }
+        
+        .wp-block-button__link:first-child:hover {
+            background-color: #0055cc;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 107, 255, 0.2);
+        }
+        
+        .has-gray-100-background-color {
+            background-color: var(--gray-100);
+            color: #2d3748;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .has-gray-100-background-color:hover {
+            background-color: #edf2f7;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+        }
+        
+        .fxfa-icon {
+            display: inline-flex;
+            width: 14px;
+            height: 14px;
+        }
+        
+        .fade-init {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        
+        .fade {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .gradient-svg-container {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 400px;
+            height: 400px;
+            z-index: 1;
+            overflow: hidden;
+        }
+        
+        .gradient-svg {
+            position: absolute;
+            top: -50%;
+            width: 400px;
+            height: 400px;
+        }
+        
+        @media (max-width: 767px) {
+            .gradient-svg-container {
+                width: 280px;
+                height: 280px;
+                left: -52% !important;
+                transform: translateX(0); 
+            }
+            
+            .gradient-svg {
+                width: 280px;
+                height: 280px;
+            }
+        }
+        
+        @media (min-width: 768px) and (max-width: 1023px) {
+            .gradient-svg-container {
+                width: 550px;
+                height: 550px;
+                left: -20% !important;
+                top: -20% !important;
+                transform: translateX(0) translateY(0);
+            }
+            
+            .gradient-svg {
+                width: 550px;
+                height: 550px;
+                top: 0;
+            }
+            
+            .blue-border-circle {
+                max-width: 450px !important;
+                width: 100%;
+            }
+            
+            .main-image {
+                width: 80% !important; 
+                height: 85% !important;
+                padding: 20px !important;
+            }
+            
+            .image-container {
+                justify-content: flex-start;
+                padding-left: 40px;
+            }
+        }
+        
+        @media (min-width: 1024px) {
+            .gradient-svg-container {
+                width: 550px;
+                height: 550px;
+            }
+            
+            .gradient-svg {
+                width: 550px;
+                height: 550px;
+            }
+        }
+        
+        .image-container {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .blue-border-circle {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 320px;
+            aspect-ratio: 1 / 1;
+            border-radius: 50%;
+            background: #033DD5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        @media (min-width: 1024px) {
+            .blue-border-circle {
+                position: absolute;
+                width: 123%;
+                max-width: none;
+                top: 50%;
+                left: 0;
+                transform: translateY(-50%);
+            }
+        }
+        
+        .main-image {
+            position: relative;
+            z-index: 3;
+            width: 70%;
+            height: 80%;
+            object-fit: contain;
+            padding: 16px;
+        }
+        
+        @media (min-width: 1024px) {
+            .main-image {
+                position: absolute;
+                width: 80%;
+                top: 50%;
+                left: 32px;
+                transform: translateY(-50%);
+                max-width: none;
+            }
+        }
+        
+        @media (min-width: 768px) and (max-width: 1023px) {
+            .min-h-[450px] {
+                min-height: 500px; 
+            }
+            
+            .wp-block-heading {
+                font-size: 2.25rem; 
+            }
+            
+            .blue-border-section p {
+                font-size: 1.1rem; 
+            }
+        }
+       .wp-block-button-custom  {
+    background-color:white;
+    color: black;
+    display: inline-flex
+;
+    align-items: center;
+    padding: 12px 24px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.3s 
+ease;
+    cursor: pointer;
+    gap: 8px;
+    border: none;
+}
+    </style>
+</head>
+<body>
+    <div class="blue-border-section">
+        <section class="wp-block-group alignfull has-global-padding is-layout-constrained wp-block-group-is-layout-constrained">
+            <div class="alignwide wp-block-venn-hero">
+                <div class="relative bg-custom-blue border border-secondary-200 rounded-2xl overflow-clip isolate min-h-[450px] flex items-center justify-center">
+                    
+                    <div class="gradient-svg-container">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="gradient-svg" viewBox="0 0 508 508" fill="none">
+                            <path fill="url(#a)" d="M433.148 74.316c99.088 99.089 99.088 259.743 0 358.832-99.089 99.088-259.743 99.088-358.832 0-99.088-99.089-99.088-259.743 0-358.832 99.089-99.088 259.743-99.088 358.832 0Z"></path>
+                            <defs>
+                                <linearGradient id="a" x1="507.464" x2="0" y1="-1.742" y2="507.464" gradientUnits="userSpaceOnUse">
+                                    <stop stop-color="#006BFF"></stop>
+                                    <stop offset="1" stop-color="#E1EDFF" stop-opacity="0"></stop>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+                    
+                    <div class="grid lg:grid-cols-2 items-center lg:w-full">
+                        <div class="relative">
+                            <div class="max-lg:relative max-lg:px-6 max-lg:pt-6 max-lg:-mb-8 max-lg:flex max-lg:justify-center image-container">
+                                <div class="blue-border-circle">
+                                    <img decoding="async" width="868" height="1024" src="https://www.venn.com/wp-content/uploads/2025/05/step-inside-blue-border-2025-868x1024.png" class="main-image" alt="Step Inside Blue Border" loading="eager">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="relative z-10 px-8 sm:px-16 lg:order-first max-lg:text-center">
+                            <div class="is-style-h-60"></div>
+                            
+                            <div class="acf-innerblocks-container">
+                                <div class="wp-block-group is-style-rich-text has-global-padding is-layout-constrained wp-block-group-is-layout-constrained">
+                                    <h2 class="fade wp-block-heading fade-init" id="h-blue-border-means-corporate-device-freedom">Blue Border™ Means Corporate Device Freedom</h2>
+                                    
+                                    <p class="fade-init">Get out of the computer hardware business. Eliminate the hassle of buying, shipping, managing and securing laptops for every remote employee and contractor. Enable your IT teams to focus on strategic initiatives, while giving your workforce the flexibility they need to thrive.</p>
+                                    
+                                    <p class="fade-init">Download our brochure to learn how Blue Border™ makes corporate device freedom achievable.</p>
+                                    
+                                    <div class="wp-block-buttons is-layout-flex wp-block-buttons-is-layout-flex">
+                                        <div class="fade wp-block-button fade-init">
+                                            <a class="wp-block-button__link wp-element-button" href="https://www.venn.com/product-brochure/">
+                                                Download the Brochure 
+                                                <span class="fxfa-icon fxfa-icon-sharp-regular fxfa-icon-arrow-down-to-line" aria-hidden="true" role="presentation">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" width="14" height="14">
+                                                        <path d="M24 480L0 480l0-48 24 0 336 0 24 0 0 48-24 0L24 480zM209.5 344.4L192 363l-17.5-18.6-128-136L30.1 191l35-32.9 16.4 17.5L168 267.5l0-83.5 0-128 0-24 48 0 0 24 0 128 0 83.5 86.5-91.9L319 158.1l35 32.9-16.4 17.5-128 136z"></path>
+                                                    </svg>
+                                                </span>
+                                            </a>
+                                        </div>
+                                        
+                                        <div class="fade wp-block-button fade-init">
+                                            <a class="wp-block-button-custom has-gray-100-background-color has-background wp-element-button" href="https://www.venn.com/request-a-demo/">Book Your Demo</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="is-style-h-60"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const fadeElements = document.querySelectorAll('.fade-init');
+            
+            const fadeInOnScroll = function() {
+                fadeElements.forEach(element => {
+                    const elementTop = element.getBoundingClientRect().top;
+                    const elementVisible = 150;
+                    
+                    if (elementTop < window.innerHeight - elementVisible) {
+                        element.classList.add('fade');
+                    }
+                });
+            };
+            
+            fadeInOnScroll();
+            window.addEventListener('scroll', fadeInOnScroll);
+            
+            const buttons = document.querySelectorAll('.wp-block-button__link');
+            buttons.forEach(button => {
+                button.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                });
+                
+                button.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
