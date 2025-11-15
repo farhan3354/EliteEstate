@@ -97,12 +97,11 @@ export default function Register() {
     setLoading(true);
     try {
       const response = await axios.post(
-        "http://localhost:8000/api/auth/register",
+        "http://localhost:8000/api/register",
         formdata
       );
       console.log("Registration success:", response.data);
       
-      // Show success message and redirect
       setTimeout(() => {
         navigate("/login", { 
           state: { 
@@ -125,8 +124,6 @@ export default function Register() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50 flex items-center justify-center py-8 px-4">
       <div className="max-w-4xl w-full grid grid-cols-1 lg:grid-cols-2 bg-white rounded-2xl shadow-2xl overflow-hidden">
-        
-        {/* Left Side - Branding */}
         <div className="hidden lg:flex bg-gradient-to-br from-blue-600 to-orange-500 p-12 text-white relative overflow-hidden">
           <div className="absolute inset-0 bg-black bg-opacity-10"></div>
           <div className="relative z-10 flex flex-col justify-center">
@@ -142,8 +139,6 @@ export default function Register() {
             <p className="text-blue-100 text-lg mb-8">
               Join our community of property seekers and owners. Find your dream home or list your property with confidence.
             </p>
-            
-            {/* Features List */}
             <div className="space-y-4">
               <div className="flex items-center">
                 <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center mr-4">
@@ -166,8 +161,6 @@ export default function Register() {
             </div>
           </div>
         </div>
-
-        {/* Right Side - Registration Form */}
         <div className="p-8 lg:p-12">
           <div className="text-center lg:text-left mb-8">
             <div className="lg:hidden flex items-center justify-center mb-6">
@@ -180,8 +173,6 @@ export default function Register() {
             <h2 className="text-3xl font-bold text-gray-800 mb-2">Join EstateElite</h2>
             <p className="text-gray-600">Create your account and unlock premium property access</p>
           </div>
-
-          {/* User Type Selection */}
           <div className="mb-6">
             <label className="block text-sm font-semibold text-gray-700 mb-3">
               I want to:
@@ -227,7 +218,6 @@ export default function Register() {
           </div>
 
           <form onSubmit={handleForm} className="space-y-5">
-            {/* Name Field */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Full Name
@@ -257,8 +247,6 @@ export default function Register() {
                 </p>
               )}
             </div>
-
-            {/* Email Field */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Email Address
@@ -288,8 +276,6 @@ export default function Register() {
                 </p>
               )}
             </div>
-
-            {/* Phone Field */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Phone Number
@@ -322,8 +308,6 @@ export default function Register() {
                 </p>
               )}
             </div>
-
-            {/* Password Field */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Password
@@ -365,8 +349,6 @@ export default function Register() {
                 </p>
               )}
             </div>
-
-            {/* Terms and Conditions */}
             <div className="flex items-start space-x-3">
               <div className="relative flex items-center">
                 <input
@@ -404,8 +386,6 @@ export default function Register() {
                 {errors.terms}
               </p>
             )}
-
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
@@ -423,8 +403,6 @@ export default function Register() {
                 </>
               )}
             </button>
-
-            {/* Error Message */}
             {errors.submit && (
               <div className="bg-red-50 border border-red-200 rounded-xl p-4">
                 <p className="text-sm text-red-600 text-center flex items-center justify-center">
@@ -434,15 +412,11 @@ export default function Register() {
               </div>
             )}
           </form>
-
-          {/* Divider */}
           <div className="my-8 flex items-center">
             <div className="flex-grow border-t border-gray-300"></div>
             <span className="mx-4 text-gray-500 text-sm font-medium">Already have an account?</span>
             <div className="flex-grow border-t border-gray-300"></div>
           </div>
-
-          {/* Sign In Link */}
           <div className="text-center">
             <Link
               to="/login"
@@ -454,8 +428,6 @@ export default function Register() {
               Sign In to Existing Account
             </Link>
           </div>
-
-          {/* Trust Badges */}
           <div className="mt-8 pt-6 border-t border-gray-200">
             <p className="text-center text-gray-500 text-sm mb-4">Trusted by real estate professionals</p>
             <div className="grid grid-cols-3 gap-4 text-center">

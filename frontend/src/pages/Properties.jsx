@@ -5,11 +5,19 @@ const Properties = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [priceRange, setPriceRange] = useState([0, 10000000]);
+  const [priceRange, setPriceRange] = useState([0, 500000]);
   const [bedrooms, setBedrooms] = useState("any");
+  const [furnishing, setFurnishing] = useState("any");
+  const [amenities, setAmenities] = useState({
+    parking: false,
+    pool: false,
+    gym: false,
+    balcony: false,
+  });
+  const [location, setLocation] = useState("any");
   const [sortBy, setSortBy] = useState("newest");
+  const [showMoreFilters, setShowMoreFilters] = useState(false);
 
-  // Sample properties data matching Dubizzle style
   const allProperties = [
     {
       id: 1,
@@ -19,24 +27,36 @@ const Properties = () => {
       beds: 2,
       baths: 2,
       area: 1200,
-      location: "Al Reem Island, Abu Dhabi",
+      location: "Al Reem Island",
+      city: "Abu Dhabi",
       image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400",
       date: "2 hours ago",
       featured: true,
+      furnishing: "furnished",
+      amenities: ["parking", "gym", "balcony"],
+      verified: true,
+      agent: "Premium Real Estate",
+      agentVerified: true,
     },
     {
       id: 2,
       title: "4BR Villa with Private Pool",
-      price: 2800,
-      type: "villas-for-rent",
+      price: 280000,
+      type: "villas-for-sale",
       beds: 4,
       baths: 4,
       area: 3200,
-      location: "Khalifa City, Abu Dhabi",
+      location: "Khalifa City",
+      city: "Abu Dhabi",
       image:
         "https://images.unsplash.com/photo-1613977257363-707ba9348227?w=400",
       date: "5 hours ago",
       featured: false,
+      furnishing: "unfurnished",
+      amenities: ["parking", "pool", "gym"],
+      verified: true,
+      agent: "Luxury Properties",
+      agentVerified: true,
     },
     {
       id: 3,
@@ -47,24 +67,36 @@ const Properties = () => {
       baths: 1,
       area: 800,
       location: "Mohammed Bin Zayed City",
+      city: "Abu Dhabi",
       image:
         "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400",
       date: "1 day ago",
       featured: false,
+      furnishing: "furnished",
+      amenities: ["parking", "balcony"],
+      verified: false,
+      agent: "City Realty",
+      agentVerified: false,
     },
     {
       id: 4,
       title: "3BR Townhouse for Family",
-      price: 1800,
-      type: "villas-for-rent",
+      price: 180000,
+      type: "villas-for-sale",
       beds: 3,
       baths: 2,
       area: 1600,
       location: "Shakhbout City",
+      city: "Abu Dhabi",
       image:
         "https://images.unsplash.com/photo-1518780664697-55e3ad937233?w=400",
       date: "3 hours ago",
       featured: true,
+      furnishing: "semi-furnished",
+      amenities: ["parking", "pool"],
+      verified: true,
+      agent: "Family Homes",
+      agentVerified: true,
     },
     {
       id: 5,
@@ -74,30 +106,52 @@ const Properties = () => {
       beds: 0,
       baths: 2,
       area: 2500,
-      location: "Downtown Abu Dhabi",
+      location: "Downtown",
+      city: "Abu Dhabi",
       image:
         "https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=400",
       date: "6 hours ago",
       featured: false,
+      furnishing: "unfurnished",
+      amenities: ["parking"],
+      verified: true,
+      agent: "Commercial Real Estate",
+      agentVerified: true,
     },
     {
       id: 6,
       title: "1BR Apartment for Rent",
-      price: 2200,
-      type: "apartments-for-rent",
+      price: 55000,
+      type: "apartments-for-sale",
       beds: 1,
       baths: 1,
       area: 900,
       location: "Al Raha Beach",
+      city: "Abu Dhabi",
       image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400",
       date: "8 hours ago",
       featured: false,
+      furnishing: "furnished",
+      amenities: ["gym", "balcony"],
+      verified: false,
+      agent: "Beach Properties",
+      agentVerified: false,
     },
+  ];
+
+  const locations = [
+    "Al Reem Island",
+    "Khalifa City",
+    "Mohammed Bin Zayed City",
+    "Shakhbout City",
+    "Downtown",
+    "Al Raha Beach",
+    "Yas Island",
+    "Saadiyat Island",
   ];
 
   useEffect(() => {
     const category = searchParams.get("category");
-    const location = searchParams.get("location");
     if (category) setSelectedCategory(category);
   }, [searchParams]);
 
@@ -108,17 +162,25 @@ const Properties = () => {
       return false;
     if (bedrooms !== "any" && property.beds !== parseInt(bedrooms))
       return false;
+    if (furnishing !== "any" && property.furnishing !== furnishing)
+      return false;
+    if (location !== "any" && property.location !== location) return false;
+
+    const selectedAmenities = Object.keys(amenities).filter(
+      (key) => amenities[key]
+    );
+    if (selectedAmenities.length > 0) {
+      const hasAllAmenities = selectedAmenities.every((amenity) =>
+        property.amenities.includes(amenity)
+      );
+      if (!hasAllAmenities) return false;
+    }
+
     return true;
   });
 
   const categories = [
     { value: "all", label: "All Properties", count: allProperties.length },
-    {
-      value: "apartments-for-rent",
-      label: "Apartments for Rent",
-      count: allProperties.filter((p) => p.type === "apartments-for-rent")
-        .length,
-    },
     {
       value: "apartments-for-sale",
       label: "Apartments for Sale",
@@ -126,20 +188,9 @@ const Properties = () => {
         .length,
     },
     {
-      value: "villas-for-rent",
-      label: "Villas for Rent",
-      count: allProperties.filter((p) => p.type === "villas-for-rent").length,
-    },
-    {
       value: "villas-for-sale",
       label: "Villas for Sale",
       count: allProperties.filter((p) => p.type === "villas-for-sale").length,
-    },
-    {
-      value: "commercial-for-rent",
-      label: "Commercial for Rent",
-      count: allProperties.filter((p) => p.type === "commercial-for-rent")
-        .length,
     },
     {
       value: "commercial-for-sale",
@@ -149,223 +200,920 @@ const Properties = () => {
     },
   ];
 
+  const handleAmenityChange = (amenity) => {
+    setAmenities((prev) => ({
+      ...prev,
+      [amenity]: !prev[amenity],
+    }));
+  };
+
+  const resetFilters = () => {
+    setSelectedCategory("all");
+    setPriceRange([0, 500000]);
+    setBedrooms("any");
+    setFurnishing("any");
+    setLocation("any");
+    setAmenities({
+      parking: false,
+      pool: false,
+      gym: false,
+      balcony: false,
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-6">
-      <div className="container mx-auto px-4">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            Properties in Abu Dhabi
-          </h1>
-          <p className="text-gray-600">
-            Find your perfect property from our extensive collection
-          </p>
-        </div>
-
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Filters Sidebar */}
-          <div className="lg:w-1/4">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                Filters
-              </h3>
-
-              {/* Category Filter */}
-              <div className="mb-6">
-                <h4 className="font-medium text-gray-700 mb-3">
-                  Property Type
-                </h4>
-                <div className="space-y-2">
-                  {categories.map((cat) => (
-                    <button
-                      key={cat.value}
-                      onClick={() => setSelectedCategory(cat.value)}
-                      className={`w-full text-left px-3 py-2 rounded transition duration-200 text-sm ${
-                        selectedCategory === cat.value
-                          ? "bg-orange-500 text-white"
-                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                      }`}
-                    >
-                      <div className="flex justify-between items-center">
-                        <span>{cat.label}</span>
-                        <span
-                          className={`text-xs ${
-                            selectedCategory === cat.value
-                              ? "text-orange-100"
-                              : "text-gray-500"
-                          }`}
-                        >
-                          ({cat.count})
-                        </span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">
+                Property for Sale in Abu Dhabi
+              </h1>
+              <p className="text-gray-600 text-sm mt-1">
+                {filteredProperties.length} properties found
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-600 whitespace-nowrap">
+                Sort by:
+              </span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium"
+              >
+                <option value="newest">Newest</option>
+                <option value="price-low">Price: Low to High</option>
+                <option value="price-high">Price: High to Low</option>
+              </select>
+            </div>
+          </div>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Property Type
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {categories.map((cat) => (
+                  <button
+                    key={cat.value}
+                    onClick={() => setSelectedCategory(cat.value)}
+                    className={`px-4 py-2 rounded-full border text-sm font-medium transition-all duration-200 ${
+                      selectedCategory === cat.value
+                        ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                        : "bg-white text-gray-700 border-gray-300 hover:border-gray-400 hover:bg-gray-50"
+                    }`}
+                  >
+                    {cat.label} ({cat.count})
+                  </button>
+                ))}
               </div>
-
-              {/* Price Range */}
-              <div className="mb-6">
-                <h4 className="font-medium text-gray-700 mb-3">
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Price Range (AED)
-                </h4>
-                <div className="space-y-3">
-                  <div className="flex justify-between text-xs text-gray-600">
-                    <span>{priceRange[0].toLocaleString()}</span>
-                    <span>{priceRange[1].toLocaleString()}</span>
-                  </div>
+                </label>
+                <div className="flex gap-2">
                   <input
-                    type="range"
-                    min="0"
-                    max="10000000"
-                    step="100000"
+                    type="number"
+                    value={priceRange[0]}
+                    onChange={(e) =>
+                      setPriceRange([
+                        parseInt(e.target.value) || 0,
+                        priceRange[1],
+                      ])
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    placeholder="Min"
+                  />
+                  <input
+                    type="number"
                     value={priceRange[1]}
                     onChange={(e) =>
-                      setPriceRange([priceRange[0], parseInt(e.target.value)])
+                      setPriceRange([
+                        priceRange[0],
+                        parseInt(e.target.value) || 0,
+                      ])
                     }
-                    className="w-full"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    placeholder="Max"
                   />
                 </div>
               </div>
-
-              {/* Bedrooms */}
-              <div className="mb-6">
-                <h4 className="font-medium text-gray-700 mb-3">Bedrooms</h4>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Bedrooms
+                </label>
                 <select
                   value={bedrooms}
                   onChange={(e) => setBedrooms(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-orange-500 text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 >
-                  <option value="any">Any</option>
+                  <option value="any">Any Bedrooms</option>
                   <option value="1">1 Bedroom</option>
                   <option value="2">2 Bedrooms</option>
                   <option value="3">3 Bedrooms</option>
                   <option value="4">4+ Bedrooms</option>
                 </select>
               </div>
-
-              <button
-                onClick={() => {
-                  setSelectedCategory("all");
-                  setPriceRange([0, 10000000]);
-                  setBedrooms("any");
-                }}
-                className="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 rounded transition duration-200 font-medium text-sm"
-              >
-                Reset Filters
-              </button>
-            </div>
-          </div>
-
-          {/* Properties Grid */}
-          <div className="lg:w-3/4">
-            {/* Results Header */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <p className="text-gray-600 text-sm">
-                  Showing {filteredProperties.length} of {allProperties.length}{" "}
-                  properties
-                </p>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Location
+                </label>
                 <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-orange-500 text-sm"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 >
-                  <option value="newest">Sort by: Newest</option>
-                  <option value="price-low">Price: Low to High</option>
-                  <option value="price-high">Price: High to Low</option>
+                  <option value="any">Any Location</option>
+                  {locations.map((loc) => (
+                    <option key={loc} value={loc}>
+                      {loc}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
-
-            {/* Properties List */}
-            {filteredProperties.length === 0 ? (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-                <div className="text-6xl mb-4">🏠</div>
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                  No properties found
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  Try adjusting your filters to see more results
-                </p>
-                <button
-                  onClick={() => {
-                    setSelectedCategory("all");
-                    setPriceRange([0, 10000000]);
-                    setBedrooms("any");
-                  }}
-                  className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded transition duration-200"
+            <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+              <button
+                onClick={() => setShowMoreFilters(!showMoreFilters)}
+                className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1"
+              >
+                {showMoreFilters ? "Fewer Filters" : "More Filters"}
+                <span
+                  className={`transform transition-transform ${
+                    showMoreFilters ? "rotate-180" : ""
+                  }`}
                 >
-                  Reset Filters
-                </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
-                {filteredProperties.map((property) => (
-                  <div
-                    key={property.id}
-                    className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition duration-200"
-                  >
-                    <div className="flex">
-                      {/* Property Image */}
-                      <div className="w-1/3">
-                        <img
-                          src={property.image}
-                          alt={property.title}
-                          className="w-full h-32 object-cover rounded-l-lg"
-                        />
-                      </div>
+                  ▼
+                </span>
+              </button>
 
-                      {/* Property Details */}
-                      <div className="w-2/3 p-4">
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="font-semibold text-gray-800 text-sm line-clamp-2 flex-1 mr-2">
+              <button
+                onClick={resetFilters}
+                className="text-gray-600 hover:text-gray-800 text-sm font-medium"
+              >
+                Clear All Filters
+              </button>
+            </div>
+            {showMoreFilters && (
+              <div className="pt-4 border-t border-gray-200 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Furnishing
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {["any", "furnished", "semi-furnished", "unfurnished"].map(
+                      (furnish) => (
+                        <button
+                          key={furnish}
+                          onClick={() => setFurnishing(furnish)}
+                          className={`px-4 py-2 rounded-full border text-sm font-medium transition-all duration-200 ${
+                            furnishing === furnish
+                              ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                              : "bg-white text-gray-700 border-gray-300 hover:border-gray-400 hover:bg-gray-50"
+                          }`}
+                        >
+                          {furnish === "any"
+                            ? "Any Furnishing"
+                            : furnish.charAt(0).toUpperCase() +
+                              furnish.slice(1).replace("-", " ")}
+                        </button>
+                      )
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Amenities
+                  </label>
+                  <div className="flex flex-wrap gap-4">
+                    {[
+                      { key: "parking", label: "Parking" },
+                      { key: "pool", label: "Swimming Pool" },
+                      { key: "gym", label: "Gym" },
+                      { key: "balcony", label: "Balcony" },
+                    ].map((amenity) => (
+                      <label
+                        key={amenity.key}
+                        className="flex items-center space-x-2 cursor-pointer group"
+                      >
+                        <div className="relative">
+                          <input
+                            type="checkbox"
+                            checked={amenities[amenity.key]}
+                            onChange={() => handleAmenityChange(amenity.key)}
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                        </div>
+                        <span className="text-sm text-gray-700 group-hover:text-gray-900">
+                          {amenity.label}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+        {filteredProperties.length === 0 ? (
+          <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+            <div className="text-6xl mb-4">🏠</div>
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">
+              No properties found
+            </h3>
+            <p className="text-gray-600 mb-4">
+              Try adjusting your filters to see more results
+            </p>
+            <button
+              onClick={resetFilters}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition duration-200 font-medium"
+            >
+              Reset Filters
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {filteredProperties.map((property) => (
+              <div
+                key={property.id}
+                className="bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200 overflow-hidden"
+              >
+                <div className="flex flex-col sm:flex-row">
+                  <div className="sm:w-80 relative">
+                    <img
+                      src={property.image}
+                      alt={property.title}
+                      className="w-full h-48 sm:h-full object-cover"
+                    />
+                    <div className="absolute top-3 left-3 flex flex-col gap-2">
+                      {property.featured && (
+                        <span className="bg-orange-500 text-white px-2 py-1 rounded text-xs font-semibold uppercase tracking-wide">
+                          Featured
+                        </span>
+                      )}
+                      {property.verified && (
+                        <span className="bg-green-500 text-white px-2 py-1 rounded text-xs font-semibold">
+                          Verified
+                        </span>
+                      )}
+                    </div>
+                    <button className="absolute top-3 right-3 bg-white hover:bg-gray-100 p-2 rounded-full shadow-md">
+                      ♡
+                    </button>
+                  </div>
+                  <div className="flex-1 p-6">
+                    <div className="flex flex-col h-full">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-gray-900 text-lg mb-1 hover:text-blue-600 cursor-pointer">
                             {property.title}
                           </h3>
-                          {property.featured && (
-                            <span className="bg-orange-500 text-white px-2 py-1 rounded text-xs font-semibold whitespace-nowrap">
-                              Featured
+                          <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                            <span>
+                              📍 {property.location}, {property.city}
                             </span>
-                          )}
+                          </div>
                         </div>
-
-                        <p className="text-gray-600 text-xs mb-2">
-                          {property.location}
-                        </p>
-
-                        <div className="text-lg font-bold text-orange-500 mb-2">
-                          {property.type.includes("rent")
-                            ? `AED ${property.price.toLocaleString()}/month`
-                            : `AED ${property.price.toLocaleString()}`}
+                        <div className="text-2xl font-bold text-blue-600 whitespace-nowrap ml-4">
+                          AED {property.price.toLocaleString()}
                         </div>
-
-                        <div className="flex items-center justify-between text-xs text-gray-600 mb-3">
-                          <span>🛏️ {property.beds} bed</span>
-                          <span>🚿 {property.baths} bath</span>
-                          <span>📐 {property.area} sq.ft</span>
-                        </div>
-
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-500 text-xs">
+                      </div>
+                      <div className="flex items-center gap-6 text-sm text-gray-600 mb-4">
+                        <span className="flex items-center gap-1">
+                          <span className="text-lg">🛏️</span>
+                          {property.beds} bed{property.beds !== 1 ? "s" : ""}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <span className="text-lg">🚿</span>
+                          {property.baths} bath{property.baths !== 1 ? "s" : ""}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <span className="text-lg">📐</span>
+                          {property.area.toLocaleString()} sq.ft
+                        </span>
+                        <span className="flex items-center gap-1 capitalize">
+                          <span className="text-lg">🛋️</span>
+                          {property.furnishing}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 mb-4 flex-wrap">
+                        {property.amenities.map((amenity) => (
+                          <span
+                            key={amenity}
+                            className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-medium capitalize"
+                          >
+                            {amenity}
+                          </span>
+                        ))}
+                      </div>
+                      <div className="flex justify-between items-center mt-auto pt-4 border-t border-gray-100">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-gray-500">
                             {property.date}
                           </span>
+                          <span className="text-gray-300">•</span>
+                          <div className="flex items-center gap-1">
+                            <span className="text-sm text-gray-600">
+                              {property.agent}
+                            </span>
+                            {property.agentVerified && (
+                              <span className="text-blue-500 text-xs">✓</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <button className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition duration-200">
+                            📞 Call
+                          </button>
                           <button
                             onClick={() => navigate(`/property/${property.id}`)}
-                            className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-xs font-semibold transition duration-200"
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition duration-200"
                           >
-                            View
+                            View Details
                           </button>
                         </div>
                       </div>
                     </div>
                   </div>
-                ))}
+                </div>
               </div>
-            )}
+            ))}
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
 };
 
 export default Properties;
+
+// import React, { useState, useEffect } from "react";
+// import { useSearchParams, useNavigate } from "react-router-dom";
+
+// const Properties = () => {
+//   const [searchParams] = useSearchParams();
+//   const navigate = useNavigate();
+//   const [selectedCategory, setSelectedCategory] = useState("all");
+//   const [priceRange, setPriceRange] = useState([0, 500000]);
+//   const [bedrooms, setBedrooms] = useState("any");
+//   const [furnishing, setFurnishing] = useState("any");
+//   const [amenities, setAmenities] = useState({
+//     parking: false,
+//     pool: false,
+//     gym: false,
+//     balcony: false,
+//   });
+//   const [location, setLocation] = useState("any");
+//   const [sortBy, setSortBy] = useState("newest");
+
+//   // Sample properties data
+//   const allProperties = [
+//     {
+//       id: 1,
+//       title: "2BR Luxury Apartment with Sea View",
+//       price: 120000,
+//       type: "apartments-for-sale",
+//       beds: 2,
+//       baths: 2,
+//       area: 1200,
+//       location: "Al Reem Island",
+//       city: "Abu Dhabi",
+//       image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400",
+//       date: "2 hours ago",
+//       featured: true,
+//       furnishing: "furnished",
+//       amenities: ["parking", "gym", "balcony"],
+//       verified: true,
+//       agent: "Premium Real Estate",
+//       agentVerified: true
+//     },
+//     {
+//       id: 2,
+//       title: "4BR Villa with Private Pool",
+//       price: 280000,
+//       type: "villas-for-sale",
+//       beds: 4,
+//       baths: 4,
+//       area: 3200,
+//       location: "Khalifa City",
+//       city: "Abu Dhabi",
+//       image: "https://images.unsplash.com/photo-1613977257363-707ba9348227?w=400",
+//       date: "5 hours ago",
+//       featured: false,
+//       furnishing: "unfurnished",
+//       amenities: ["parking", "pool", "gym"],
+//       verified: true,
+//       agent: "Luxury Properties",
+//       agentVerified: true
+//     },
+//     {
+//       id: 3,
+//       title: "Studio Apartment Near Mosque",
+//       price: 45000,
+//       type: "apartments-for-sale",
+//       beds: 1,
+//       baths: 1,
+//       area: 800,
+//       location: "Mohammed Bin Zayed City",
+//       city: "Abu Dhabi",
+//       image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400",
+//       date: "1 day ago",
+//       featured: false,
+//       furnishing: "furnished",
+//       amenities: ["parking", "balcony"],
+//       verified: false,
+//       agent: "City Realty",
+//       agentVerified: false
+//     },
+//     {
+//       id: 4,
+//       title: "3BR Townhouse for Family",
+//       price: 180000,
+//       type: "villas-for-sale",
+//       beds: 3,
+//       baths: 2,
+//       area: 1600,
+//       location: "Shakhbout City",
+//       city: "Abu Dhabi",
+//       image: "https://images.unsplash.com/photo-1518780664697-55e3ad937233?w=400",
+//       date: "3 hours ago",
+//       featured: true,
+//       furnishing: "semi-furnished",
+//       amenities: ["parking", "pool"],
+//       verified: true,
+//       agent: "Family Homes",
+//       agentVerified: true
+//     },
+//     {
+//       id: 5,
+//       title: "Commercial Office Space",
+//       price: 850000,
+//       type: "commercial-for-sale",
+//       beds: 0,
+//       baths: 2,
+//       area: 2500,
+//       location: "Downtown",
+//       city: "Abu Dhabi",
+//       image: "https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=400",
+//       date: "6 hours ago",
+//       featured: false,
+//       furnishing: "unfurnished",
+//       amenities: ["parking"],
+//       verified: true,
+//       agent: "Commercial Real Estate",
+//       agentVerified: true
+//     },
+//     {
+//       id: 6,
+//       title: "1BR Apartment for Rent",
+//       price: 55000,
+//       type: "apartments-for-sale",
+//       beds: 1,
+//       baths: 1,
+//       area: 900,
+//       location: "Al Raha Beach",
+//       city: "Abu Dhabi",
+//       image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400",
+//       date: "8 hours ago",
+//       featured: false,
+//       furnishing: "furnished",
+//       amenities: ["gym", "balcony"],
+//       verified: false,
+//       agent: "Beach Properties",
+//       agentVerified: false
+//     },
+//   ];
+
+//   const locations = [
+//     "Al Reem Island",
+//     "Khalifa City",
+//     "Mohammed Bin Zayed City",
+//     "Shakhbout City",
+//     "Downtown",
+//     "Al Raha Beach",
+//     "Yas Island",
+//     "Saadiyat Island"
+//   ];
+
+//   useEffect(() => {
+//     const category = searchParams.get("category");
+//     if (category) setSelectedCategory(category);
+//   }, [searchParams]);
+
+//   const filteredProperties = allProperties.filter((property) => {
+//     if (selectedCategory !== "all" && property.type !== selectedCategory)
+//       return false;
+//     if (property.price < priceRange[0] || property.price > priceRange[1])
+//       return false;
+//     if (bedrooms !== "any" && property.beds !== parseInt(bedrooms))
+//       return false;
+//     if (furnishing !== "any" && property.furnishing !== furnishing)
+//       return false;
+//     if (location !== "any" && property.location !== location)
+//       return false;
+
+//     const selectedAmenities = Object.keys(amenities).filter(key => amenities[key]);
+//     if (selectedAmenities.length > 0) {
+//       const hasAllAmenities = selectedAmenities.every(amenity =>
+//         property.amenities.includes(amenity)
+//       );
+//       if (!hasAllAmenities) return false;
+//     }
+
+//     return true;
+//   });
+
+//   const categories = [
+//     { value: "all", label: "All Properties", count: allProperties.length },
+//     {
+//       value: "apartments-for-sale",
+//       label: "Apartments for Sale",
+//       count: allProperties.filter((p) => p.type === "apartments-for-sale").length,
+//     },
+//     {
+//       value: "villas-for-sale",
+//       label: "Villas for Sale",
+//       count: allProperties.filter((p) => p.type === "villas-for-sale").length,
+//     },
+//     {
+//       value: "commercial-for-sale",
+//       label: "Commercial for Sale",
+//       count: allProperties.filter((p) => p.type === "commercial-for-sale").length,
+//     },
+//   ];
+
+//   const handleAmenityChange = (amenity) => {
+//     setAmenities(prev => ({
+//       ...prev,
+//       [amenity]: !prev[amenity]
+//     }));
+//   };
+
+//   const resetFilters = () => {
+//     setSelectedCategory("all");
+//     setPriceRange([0, 500000]);
+//     setBedrooms("any");
+//     setFurnishing("any");
+//     setLocation("any");
+//     setAmenities({
+//       parking: false,
+//       pool: false,
+//       gym: false,
+//       balcony: false,
+//     });
+//   };
+
+//   return (
+//     <div className="min-h-screen bg-gray-50 py-6">
+//       <div className="max-w-7xl mx-auto px-4">
+//         {/* Breadcrumb */}
+//         <div className="mb-6">
+//           <nav className="text-sm text-gray-500">
+//             <span>UAE</span>
+//             <span className="mx-2">›</span>
+//             <span>Abu Dhabi</span>
+//             <span className="mx-2">›</span>
+//             <span className="text-gray-800 font-medium">Property For Sale</span>
+//           </nav>
+//         </div>
+
+//         <div className="flex flex-col lg:flex-row gap-6">
+//           {/* Filters Sidebar - Dubizzle Style */}
+//           <div className="lg:w-80">
+//             <div className="bg-white rounded-lg border border-gray-200 sticky top-6">
+//               {/* Filters Header */}
+//               <div className="border-b border-gray-200 p-4">
+//                 <div className="flex justify-between items-center">
+//                   <h3 className="text-lg font-semibold text-gray-800">Filters</h3>
+//                   <button
+//                     onClick={resetFilters}
+//                     className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+//                   >
+//                     Clear all
+//                   </button>
+//                 </div>
+//               </div>
+
+//               <div className="p-4 space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto">
+//                 {/* Category Filter */}
+//                 <div>
+//                   <h4 className="font-semibold text-gray-800 mb-3 text-sm uppercase tracking-wide">
+//                     PROPERTY TYPE
+//                   </h4>
+//                   <div className="space-y-2">
+//                     {categories.map((cat) => (
+//                       <button
+//                         key={cat.value}
+//                         onClick={() => setSelectedCategory(cat.value)}
+//                         className={`w-full text-left px-3 py-2 rounded transition duration-200 text-sm flex justify-between items-center ${
+//                           selectedCategory === cat.value
+//                             ? "bg-blue-50 text-blue-600 border border-blue-200"
+//                             : "text-gray-700 hover:bg-gray-50"
+//                         }`}
+//                       >
+//                         <span>{cat.label}</span>
+//                         <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs min-w-8 text-center">
+//                           {cat.count}
+//                         </span>
+//                       </button>
+//                     ))}
+//                   </div>
+//                 </div>
+
+//                 {/* Price Range */}
+//                 <div>
+//                   <h4 className="font-semibold text-gray-800 mb-3 text-sm uppercase tracking-wide">
+//                     PRICE (AED)
+//                   </h4>
+//                   <div className="space-y-3">
+//                     <div className="flex gap-2">
+//                       <input
+//                         type="number"
+//                         value={priceRange[0]}
+//                         onChange={(e) => setPriceRange([parseInt(e.target.value) || 0, priceRange[1]])}
+//                         className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+//                         placeholder="Min"
+//                       />
+//                       <input
+//                         type="number"
+//                         value={priceRange[1]}
+//                         onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value) || 0])}
+//                         className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+//                         placeholder="Max"
+//                       />
+//                     </div>
+//                     <div className="px-1">
+//                       <input
+//                         type="range"
+//                         min="0"
+//                         max="500000"
+//                         step="10000"
+//                         value={priceRange[1]}
+//                         onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
+//                         className="w-full h-1 bg-gray-200 rounded appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-600"
+//                       />
+//                     </div>
+//                   </div>
+//                 </div>
+
+//                 {/* Bedrooms */}
+//                 <div>
+//                   <h4 className="font-semibold text-gray-800 mb-3 text-sm uppercase tracking-wide">
+//                     BEDROOMS
+//                   </h4>
+//                   <div className="grid grid-cols-4 gap-2">
+//                     {["any", "1", "2", "3", "4", "5", "6", "7+"].map((bed) => (
+//                       <button
+//                         key={bed}
+//                         onClick={() => setBedrooms(bed)}
+//                         className={`px-3 py-2 rounded border text-sm font-medium ${
+//                           bedrooms === bed
+//                             ? "bg-blue-600 text-white border-blue-600"
+//                             : "bg-white text-gray-700 border-gray-300 hover:border-gray-400"
+//                         }`}
+//                       >
+//                         {bed === "any" ? "Any" : bed === "7+" ? "7+" : bed}
+//                       </button>
+//                     ))}
+//                   </div>
+//                 </div>
+
+//                 {/* Location */}
+//                 <div>
+//                   <h4 className="font-semibold text-gray-800 mb-3 text-sm uppercase tracking-wide">
+//                     LOCATION
+//                   </h4>
+//                   <select
+//                     value={location}
+//                     onChange={(e) => setLocation(e.target.value)}
+//                     className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+//                   >
+//                     <option value="any">Any Location</option>
+//                     {locations.map((loc) => (
+//                       <option key={loc} value={loc}>{loc}</option>
+//                     ))}
+//                   </select>
+//                 </div>
+
+//                 {/* Furnishing */}
+//                 <div>
+//                   <h4 className="font-semibold text-gray-800 mb-3 text-sm uppercase tracking-wide">
+//                     FURNISHING
+//                   </h4>
+//                   <div className="grid grid-cols-2 gap-2">
+//                     {["any", "furnished", "unfurnished"].map((furnish) => (
+//                       <button
+//                         key={furnish}
+//                         onClick={() => setFurnishing(furnish)}
+//                         className={`px-3 py-2 rounded border text-sm font-medium ${
+//                           furnishing === furnish
+//                             ? "bg-blue-600 text-white border-blue-600"
+//                             : "bg-white text-gray-700 border-gray-300 hover:border-gray-400"
+//                         }`}
+//                       >
+//                         {furnish === "any" ? "Any" : furnish.charAt(0).toUpperCase() + furnish.slice(1)}
+//                       </button>
+//                     ))}
+//                   </div>
+//                 </div>
+
+//                 {/* Amenities */}
+//                 <div>
+//                   <h4 className="font-semibold text-gray-800 mb-3 text-sm uppercase tracking-wide">
+//                     AMENITIES
+//                   </h4>
+//                   <div className="space-y-2">
+//                     {[
+//                       { key: "parking", label: "Parking" },
+//                       { key: "pool", label: "Swimming Pool" },
+//                       { key: "gym", label: "Gym" },
+//                       { key: "balcony", label: "Balcony" },
+//                     ].map((amenity) => (
+//                       <label key={amenity.key} className="flex items-center space-x-3 cursor-pointer group">
+//                         <div className="relative">
+//                           <input
+//                             type="checkbox"
+//                             checked={amenities[amenity.key]}
+//                             onChange={() => handleAmenityChange(amenity.key)}
+//                             className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+//                           />
+//                         </div>
+//                         <span className="text-sm text-gray-700 group-hover:text-gray-900">{amenity.label}</span>
+//                       </label>
+//                     ))}
+//                   </div>
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+
+//           {/* Main Content */}
+//           <div className="flex-1">
+//             {/* Results Header */}
+//             <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
+//               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+//                 <div>
+//                   <h1 className="text-2xl font-bold text-gray-900">
+//                     Property for Sale in Abu Dhabi
+//                   </h1>
+//                   <p className="text-gray-600 text-sm mt-1">
+//                     {filteredProperties.length} properties found
+//                   </p>
+//                 </div>
+//                 <div className="flex items-center gap-3">
+//                   <span className="text-sm text-gray-600 whitespace-nowrap">Sort by:</span>
+//                   <select
+//                     value={sortBy}
+//                     onChange={(e) => setSortBy(e.target.value)}
+//                     className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium"
+//                   >
+//                     <option value="newest">Newest</option>
+//                     <option value="price-low">Price: Low to High</option>
+//                     <option value="price-high">Price: High to Low</option>
+//                   </select>
+//                 </div>
+//               </div>
+//             </div>
+
+//             {/* Properties List */}
+//             {filteredProperties.length === 0 ? (
+//               <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+//                 <div className="text-6xl mb-4">🏠</div>
+//                 <h3 className="text-xl font-semibold text-gray-800 mb-2">
+//                   No properties found
+//                 </h3>
+//                 <p className="text-gray-600 mb-4">
+//                   Try adjusting your filters to see more results
+//                 </p>
+//                 <button
+//                   onClick={resetFilters}
+//                   className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition duration-200 font-medium"
+//                 >
+//                   Reset Filters
+//                 </button>
+//               </div>
+//             ) : (
+//               <div className="space-y-4">
+//                 {filteredProperties.map((property) => (
+//                   <div
+//                     key={property.id}
+//                     className="bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200 overflow-hidden"
+//                   >
+//                     <div className="flex flex-col sm:flex-row">
+//                       {/* Property Image */}
+//                       <div className="sm:w-80 relative">
+//                         <img
+//                           src={property.image}
+//                           alt={property.title}
+//                           className="w-full h-48 sm:h-full object-cover"
+//                         />
+//                         <div className="absolute top-3 left-3 flex flex-col gap-2">
+//                           {property.featured && (
+//                             <span className="bg-orange-500 text-white px-2 py-1 rounded text-xs font-semibold uppercase tracking-wide">
+//                               Featured
+//                             </span>
+//                           )}
+//                           {property.verified && (
+//                             <span className="bg-green-500 text-white px-2 py-1 rounded text-xs font-semibold">
+//                               Verified
+//                             </span>
+//                           )}
+//                         </div>
+//                         <button className="absolute top-3 right-3 bg-white hover:bg-gray-100 p-2 rounded-full shadow-md">
+//                           ♡
+//                         </button>
+//                       </div>
+
+//                       {/* Property Details */}
+//                       <div className="flex-1 p-6">
+//                         <div className="flex flex-col h-full">
+//                           {/* Header */}
+//                           <div className="flex justify-between items-start mb-3">
+//                             <div className="flex-1">
+//                               <h3 className="font-semibold text-gray-900 text-lg mb-1 hover:text-blue-600 cursor-pointer">
+//                                 {property.title}
+//                               </h3>
+//                               <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+//                                 <span>📍 {property.location}, {property.city}</span>
+//                               </div>
+//                             </div>
+//                             <div className="text-2xl font-bold text-blue-600 whitespace-nowrap ml-4">
+//                               AED {property.price.toLocaleString()}
+//                             </div>
+//                           </div>
+
+//                           {/* Property Features */}
+//                           <div className="flex items-center gap-6 text-sm text-gray-600 mb-4">
+//                             <span className="flex items-center gap-1">
+//                               <span className="text-lg">🛏️</span>
+//                               {property.beds} bed{property.beds !== 1 ? 's' : ''}
+//                             </span>
+//                             <span className="flex items-center gap-1">
+//                               <span className="text-lg">🚿</span>
+//                               {property.baths} bath{property.baths !== 1 ? 's' : ''}
+//                             </span>
+//                             <span className="flex items-center gap-1">
+//                               <span className="text-lg">📐</span>
+//                               {property.area.toLocaleString()} sq.ft
+//                             </span>
+//                             <span className="flex items-center gap-1 capitalize">
+//                               <span className="text-lg">🛋️</span>
+//                               {property.furnishing}
+//                             </span>
+//                           </div>
+
+//                           {/* Amenities */}
+//                           <div className="flex items-center gap-2 mb-4 flex-wrap">
+//                             {property.amenities.map((amenity) => (
+//                               <span
+//                                 key={amenity}
+//                                 className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-medium capitalize"
+//                               >
+//                                 {amenity}
+//                               </span>
+//                             ))}
+//                           </div>
+
+//                           {/* Footer */}
+//                           <div className="flex justify-between items-center mt-auto pt-4 border-t border-gray-100">
+//                             <div className="flex items-center gap-2">
+//                               <span className="text-sm text-gray-500">{property.date}</span>
+//                               <span className="text-gray-300">•</span>
+//                               <div className="flex items-center gap-1">
+//                                 <span className="text-sm text-gray-600">{property.agent}</span>
+//                                 {property.agentVerified && (
+//                                   <span className="text-blue-500 text-xs">✓</span>
+//                                 )}
+//                               </div>
+//                             </div>
+//                             <div className="flex gap-2">
+//                               <button className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition duration-200">
+//                                 📞 Call
+//                               </button>
+//                               <button
+//                                 onClick={() => navigate(`/property/${property.id}`)}
+//                                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition duration-200"
+//                               >
+//                                 View Details
+//                               </button>
+//                             </div>
+//                           </div>
+//                         </div>
+//                       </div>
+//                     </div>
+//                   </div>
+//                 ))}
+//               </div>
+//             )}
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default Properties;

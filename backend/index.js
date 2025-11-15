@@ -32,14 +32,14 @@ app.get("/", (req, res) => {
   res.json({
     message: "Property API is running...",
     version: "1.0.0",
-    endpoints: {
-      auth: "/api/v1/auth",
-      users: "/api/v1/users",
-      properties: "/api/v1/properties",
-      favorites: "/api/v1/favorites",
-      reviews: "/api/v1/reviews",
-      bookings: "/api/v1/bookings",
-    },
+    // endpoints: {
+    //   auth: "/api/v1/auth",
+    //   users: "/api/v1/users",
+    //   properties: "/api/v1/properties",
+    //   favorites: "/api/v1/favorites",
+    //   reviews: "/api/v1/reviews",
+    //   bookings: "/api/v1/bookings",
+    // },
   });
 });
 

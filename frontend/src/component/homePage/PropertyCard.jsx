@@ -128,6 +128,8 @@ const PropertyCard = ({ property }) => {
           </button>
         </div>
       </div>
+
+      {/* Agency Logo */}
       <div className="px-4 pb-4">
         <a href="#" className="flex items-center">
           <img
