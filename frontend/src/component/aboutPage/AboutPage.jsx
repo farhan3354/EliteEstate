@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-const About = () => {
+const AboutPage = () => {
   const teamMembers = [
     {
       id: 1,
@@ -316,4 +316,4 @@ const About = () => {
   );
 };
 
-export default About;
+export default AboutPage;
