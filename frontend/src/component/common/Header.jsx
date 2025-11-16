@@ -264,9 +264,9 @@ import {
   FiMenu,
   FiX,
   FiPlus,
-  FiBell,
-  FiMessageSquare,
+  FiMail,
 } from "react-icons/fi";
+import { FcAbout } from "react-icons/fc";
 import { logout } from "../../redux/slices/authSlice";
 
 const Header = () => {
@@ -293,7 +293,8 @@ const Header = () => {
   const navItems = [
     { path: "/", label: "Home", icon: FiHome },
     { path: "/properties", label: "Browse", icon: FiSearch },
-    { path: "/favorites", label: "Favorites", icon: FiHeart },
+    { path: "/about", label: "About", icon: FcAbout },
+    { path: "/contact", label: "Contact", icon: FiMail },
   ];
 
   return (

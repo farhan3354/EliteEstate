@@ -1,25 +1,16 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-
-// Public Pages
-// import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Properties from "./pages/Properties";
 import PropertyDetails from "./pages/PropertyDetails";
-
-// User Dashboard Pages
 import CreateProperty from "./pages/CreateProperty";
 import MyProperties from "./pages/MyProperties";
 import Favorites from "./pages/Favorites";
 import Bookings from "./pages/Bookings";
 import Profile from "./pages/Profile";
-
-// Layouts
 import Layout from "./component/common/Layout";
 import AdminLayout from "./component/common/admin/AdminLayout";
-
-// Admin Pages
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminUsers from "./pages/admin/Users";
 import AdminProperties from "./pages/admin/Properties";
@@ -27,7 +18,9 @@ import AdminBookings from "./pages/admin/Bookings";
 import AdminReviews from "./pages/admin/Reviews";
 import AdminAgents from "./pages/admin/AdminAgents";
 import ImageSwapAnimation from "./pages/ImageSwap";
-import Home from './pages/home/Home';
+import Home from "./pages/home/Home";
+import About from "./pages/about/About";
+import Contact from "./pages/about/Contact";
 
 export default function App() {
   return (
@@ -39,6 +32,8 @@ export default function App() {
           <Route path="register" element={<Register />} />
           <Route path="properties" element={<Properties />} />
           <Route path="property/:id" element={<PropertyDetails />} />
+          <Route path="about" element={<About />} />
+          <Route path="contact" element={<Contact />} />
           <Route path="create-property" element={<CreateProperty />} />
           <Route path="my-properties" element={<MyProperties />} />
           <Route path="favorites" element={<Favorites />} />
