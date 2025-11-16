@@ -17,7 +17,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 sm:gap-8">
           <div className="lg:col-span-2">
             <Link to="/" className="flex items-center space-x-3 mb-4 sm:mb-6">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
                 <span className="text-white font-bold text-base sm:text-lg">
                   P
                 </span>
@@ -26,7 +26,7 @@ const Footer = () => {
                 <span className="text-xl sm:text-2xl font-bold text-gray-900">
                   PrimeProperties
                 </span>
-                <p className="text-orange-500 text-xs sm:text-sm font-medium">
+                <p className="text-blue-500 text-xs sm:text-sm font-medium">
                   Abu Dhabi
                 </p>
               </div>
@@ -37,7 +37,7 @@ const Footer = () => {
               exceptional service to help you find your dream home.
             </p>
             <div className="flex space-x-3 sm:space-x-4">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-xl flex items-center justify-center hover:bg-orange-500 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-orange-500/25 hover:scale-110">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-xl flex items-center justify-center hover:bg-blue-500 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-orange-500/25 hover:scale-110">
                 <FiFacebook className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 hover:text-white" />
               </div>
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-xl flex items-center justify-center hover:bg-blue-400 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-blue-400/25 hover:scale-110">
@@ -59,45 +59,45 @@ const Footer = () => {
               <li>
                 <Link
                   to="/properties"
-                  className="text-gray-600 hover:text-orange-500 transition-all duration-300 flex items-center space-x-2 group text-sm sm:text-base"
+                  className="text-gray-600 hover:text-blue-500 transition-all duration-300 flex items-center space-x-2 group text-sm sm:text-base"
                 >
-                  <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-orange-500 rounded-full opacity-0 group-hover:opacity-100 transition duration-300"></div>
+                  <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-blue-500 rounded-full opacity-0 group-hover:opacity-100 transition duration-300"></div>
                   <span>Browse Properties</span>
                 </Link>
               </li>
               <li>
                 <Link
                   to="/about"
-                  className="text-gray-600 hover:text-orange-500 transition-all duration-300 flex items-center space-x-2 group text-sm sm:text-base"
+                  className="text-gray-600 hover:text-blue-500 transition-all duration-300 flex items-center space-x-2 group text-sm sm:text-base"
                 >
-                  <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-orange-500 rounded-full opacity-0 group-hover:opacity-100 transition duration-300"></div>
+                  <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-blue-500 rounded-full opacity-0 group-hover:opacity-100 transition duration-300"></div>
                   <span>About Us</span>
                 </Link>
               </li>
               <li>
                 <Link
                   to="/contact"
-                  className="text-gray-600 hover:text-orange-500 transition-all duration-300 flex items-center space-x-2 group text-sm sm:text-base"
+                  className="text-gray-600 hover:text-blue-500 transition-all duration-300 flex items-center space-x-2 group text-sm sm:text-base"
                 >
-                  <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-orange-500 rounded-full opacity-0 group-hover:opacity-100 transition duration-300"></div>
+                  <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-blue-500 rounded-full opacity-0 group-hover:opacity-100 transition duration-300"></div>
                   <span>Contact</span>
                 </Link>
               </li>
               <li>
                 <Link
                   to="/agents"
-                  className="text-gray-600 hover:text-orange-500 transition-all duration-300 flex items-center space-x-2 group text-sm sm:text-base"
+                  className="text-gray-600 hover:text-blue-500 transition-all duration-300 flex items-center space-x-2 group text-sm sm:text-base"
                 >
-                  <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-orange-500 rounded-full opacity-0 group-hover:opacity-100 transition duration-300"></div>
+                  <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-blue-500 rounded-full opacity-0 group-hover:opacity-100 transition duration-300"></div>
                   <span>Our Agents</span>
                 </Link>
               </li>
               <li>
                 <Link
                   to="/list-property"
-                  className="text-gray-600 hover:text-orange-500 transition-all duration-300 flex items-center space-x-2 group text-sm sm:text-base"
+                  className="text-gray-600 hover:text-blue-500 transition-all duration-300 flex items-center space-x-2 group text-sm sm:text-base"
                 >
-                  <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-orange-500 rounded-full opacity-0 group-hover:opacity-100 transition duration-300"></div>
+                  <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-blue-500 rounded-full opacity-0 group-hover:opacity-100 transition duration-300"></div>
                   <span>List Property</span>
                 </Link>
               </li>
@@ -108,61 +108,46 @@ const Footer = () => {
               Contact Info
             </h3>
             <ul className="space-y-3 sm:space-y-4 text-gray-600">
-              <li className="flex items-center space-x-3 sm:space-x-4 group hover:text-orange-500 transition-all duration-300">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition duration-300 flex-shrink-0">
+              <li className="flex items-center space-x-3 sm:space-x-4 group hover:text-blue-500 transition-all duration-300">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition duration-300 flex-shrink-0">
                   <FiMapPin className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                 </div>
                 <div className="min-w-0">
                   <span className="font-medium block text-sm sm:text-base">
                     Abu Dhabi, UAE
                   </span>
-                  <span className="text-xs sm:text-sm text-gray-500 group-hover:text-orange-400">
+                  <span className="text-xs sm:text-sm text-gray-500 group-hover:text-blue-400">
                     Main Office
                   </span>
                 </div>
               </li>
-              <li className="flex items-center space-x-3 sm:space-x-4 group hover:text-orange-500 transition-all duration-300">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition duration-300 flex-shrink-0">
+              <li className="flex items-center space-x-3 sm:space-x-4 group hover:text-blue-500 transition-all duration-300">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition duration-300 flex-shrink-0">
                   <FiMail className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                 </div>
                 <div className="min-w-0">
                   <span className="font-medium block text-sm sm:text-base break-words">
                     info@primeproperties.ae
                   </span>
-                  <span className="text-xs sm:text-sm text-gray-500 group-hover:text-orange-400">
+                  <span className="text-xs sm:text-sm text-gray-500 group-hover:text-blue-400">
                     Email Us
                   </span>
                 </div>
               </li>
-              <li className="flex items-center space-x-3 sm:space-x-4 group hover:text-orange-500 transition-all duration-300">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition duration-300 flex-shrink-0">
+              <li className="flex items-center space-x-3 sm:space-x-4 group hover:text-blue-500 transition-all duration-300">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition duration-300 flex-shrink-0">
                   <FiPhone className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                 </div>
                 <div className="min-w-0">
                   <span className="font-medium block text-sm sm:text-base">
                     +971 2 123 4567
                   </span>
-                  <span className="text-xs sm:text-sm text-gray-500 group-hover:text-orange-400">
+                  <span className="text-xs sm:text-sm text-gray-500 group-hover:text-blue-400">
                     Call Us
                   </span>
                 </div>
               </li>
             </ul>
-            <div className="mt-4 sm:mt-6">
-              <h4 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3 text-gray-800">
-                Newsletter
-              </h4>
-              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-                <input
-                  type="email"
-                  placeholder="Your email"
-                  className="flex-1 px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 placeholder-gray-500 focus:outline-none focus:border-orange-500 transition duration-300 text-sm sm:text-base"
-                />
-                <button className="px-4 py-2 bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-orange-500/25 transition-all duration-300 text-sm sm:text-base whitespace-nowrap">
-                  Join
-                </button>
-              </div>
-            </div>
           </div>
         </div>
         <div className="border-t border-gray-300 mt-8 sm:mt-12 pt-6 sm:pt-8">
@@ -173,19 +158,19 @@ const Footer = () => {
             <div className="flex flex-wrap justify-center space-x-4 sm:space-x-6 text-xs sm:text-sm text-gray-500">
               <Link
                 to="/privacy"
-                className="hover:text-orange-500 transition duration-300 mb-1 sm:mb-0"
+                className="hover:text-blue-500 transition duration-300 mb-1 sm:mb-0"
               >
                 Privacy Policy
               </Link>
               <Link
                 to="/terms"
-                className="hover:text-orange-500 transition duration-300 mb-1 sm:mb-0"
+                className="hover:text-blue-500 transition duration-300 mb-1 sm:mb-0"
               >
                 Terms of Service
               </Link>
               <Link
                 to="/cookies"
-                className="hover:text-orange-500 transition duration-300 mb-1 sm:mb-0"
+                className="hover:text-blue-500 transition duration-300 mb-1 sm:mb-0"
               >
                 Cookie Policy
               </Link>

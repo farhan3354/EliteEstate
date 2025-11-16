@@ -97,101 +97,103 @@ const PropertyCategories = () => {
   };
 
   return (
-    <section className="py-16 bg-white">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h3 className="text-3xl font-bold text-gray-800 mb-4">
-            Popular Categories
-          </h3>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            Browse through our most popular property categories in Abu Dhabi
-          </p>
-        </div>
-        <div className="relative">
-          {showLeftArrow && (
-            <button
-              onClick={() => scroll("left")}
-              className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-white shadow-lg hover:shadow-xl p-3 transition-all duration-300 -translate-x-4"
-              aria-label="Previous categories"
-            >
-              <FiChevronLeft className="w-5 h-5 text-gray-700" />
-            </button>
-          )}
-
-          {showRightArrow && (
-            <button
-              onClick={() => scroll("right")}
-              className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-white shadow-lg hover:shadow-xl p-3 transition-all duration-300 translate-x-4"
-              aria-label="Next categories"
-            >
-              <FiChevronRight className="w-5 h-5 text-gray-700" />
-            </button>
-          )}
-          <div
-            ref={scrollContainerRef}
-            onScroll={handleScroll}
-            className="flex space-x-4 overflow-x-auto scrollbar-hide scroll-smooth py-4 px-2"
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-          >
-            {propertyCategories.map((category) => (
-              <div
-                key={category.value}
-                onClick={() => handleCategoryClick(category.value)}
-                className="group flex-shrink-0 w-60 cursor-pointer transition-all duration-300"
+    <>
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h3 className="text-3xl font-bold text-gray-800 mb-4">
+              Popular Categories
+            </h3>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Browse through our most popular property categories in Abu Dhabi
+            </p>
+          </div>
+          <div className="relative">
+            {showLeftArrow && (
+              <button
+                onClick={() => scroll("left")}
+                className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-white shadow-lg hover:shadow-xl p-3 transition-all duration-300 -translate-x-4"
+                aria-label="Previous categories"
               >
-                <div className="relative bg-white overflow-hidden shadow-lg hover:shadow-xl border-0">
-                  <div className="relative w-full h-60 overflow-hidden">
-                    <img
-                      src={category.image}
-                      alt={category.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
-                    <div className="absolute inset-0 bg-orange-500 opacity-0 group-hover:opacity-20 transition duration-300"></div>
-                    <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-                      <h4 className="text-lg font-bold mb-1">
-                        {category.name}
-                      </h4>
-                    </div>
-                    <svg
-                      viewBox="0 0 300 300"
-                      className="absolute inset-0 w-full h-full pointer-events-none opacity-0 group-hover:opacity-100 transition duration-300"
-                      preserveAspectRatio="none"
-                    >
-                      <path
-                        d="M0.5,0.5h299v299h-299V0.5z"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1"
-                        className="text-orange-500"
+                <FiChevronLeft className="w-5 h-5 text-gray-700" />
+              </button>
+            )}
+
+            {showRightArrow && (
+              <button
+                onClick={() => scroll("right")}
+                className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-white shadow-lg hover:shadow-xl p-3 transition-all duration-300 translate-x-4"
+                aria-label="Next categories"
+              >
+                <FiChevronRight className="w-5 h-5 text-gray-700" />
+              </button>
+            )}
+            <div
+              ref={scrollContainerRef}
+              onScroll={handleScroll}
+              className="flex space-x-4 overflow-x-auto scrollbar-hide scroll-smooth py-4 px-2"
+              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            >
+              {propertyCategories.map((category) => (
+                <div
+                  key={category.value}
+                  onClick={() => handleCategoryClick(category.value)}
+                  className="group flex-shrink-0 w-60 cursor-pointer transition-all duration-300"
+                >
+                  <div className="relative bg-white overflow-hidden shadow-lg hover:shadow-xl border-0">
+                    <div className="relative w-full h-60 overflow-hidden">
+                      <img
+                        src={category.image}
+                        alt={category.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                       />
-                    </svg>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
+                      <div className="absolute inset-0 bg-blue-500 opacity-0 group-hover:opacity-20 transition duration-300"></div>
+                      <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+                        <h4 className="text-lg font-bold mb-1">
+                          {category.name}
+                        </h4>
+                      </div>
+                      <svg
+                        viewBox="0 0 300 300"
+                        className="absolute inset-0 w-full h-full pointer-events-none opacity-0 group-hover:opacity-100 transition duration-300"
+                        preserveAspectRatio="none"
+                      >
+                        <path
+                          d="M0.5,0.5h299v299h-299V0.5z"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1"
+                          className="text-blue-500"
+                        />
+                      </svg>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+          </div>
+          <div className="text-center mt-12">
+            <button
+              onClick={() => navigate("/categories")}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 font-semibold transition duration-300 inline-flex items-center space-x-2 shadow-lg hover:shadow-xl"
+            >
+              <span>View All Categories</span>
+              <FiChevronRight className="w-5 h-5" />
+            </button>
           </div>
         </div>
-        <div className="text-center mt-12">
-          <button
-            onClick={() => navigate("/categories")}
-            className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 font-semibold transition duration-300 inline-flex items-center space-x-2 shadow-lg hover:shadow-xl"
-          >
-            <span>View All Categories</span>
-            <FiChevronRight className="w-5 h-5" />
-          </button>
-        </div>
-      </div>
-      <style jsx>{`
-        .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
-    </section>
+        <style jsx>{`
+          .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+          .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+          }
+        `}</style>
+      </section>
+    </>
   );
 };
 
@@ -280,7 +282,7 @@ export default PropertyCategories;
 //       <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
 //         <div className="container mx-auto px-4">
 //           <div className="text-center mb-16">
-//             <div className="inline-flex items-center space-x-2 bg-orange-100 text-orange-600 px-4 py-2 rounded-full text-sm font-semibold mb-4">
+//             <div className="inline-flex items-center space-x-2 bg-blue-100 text-blue-600 px-4 py-2 rounded-full text-sm font-semibold mb-4">
 //               <FiMapPin className="w-4 h-4" />
 //               <span>Abu Dhabi Properties</span>
 //             </div>
@@ -313,7 +315,7 @@ export default PropertyCategories;
 //                         {category.count.toLocaleString()} properties
 //                       </div>
 //                       {category.trending && (
-//                         <div className="bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center space-x-1">
+//                         <div className="bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center space-x-1">
 //                           <FiTrendingUp className="w-3 h-3" />
 //                           <span>Trending</span>
 //                         </div>
@@ -331,19 +333,19 @@ export default PropertyCategories;
 //                         </div>
 //                       )}
 //                     </div>
-//                     <div className="absolute bottom-4 right-4 w-12 h-12 bg-orange-500 bg-opacity-20 backdrop-blur-sm rounded-xl flex items-center justify-center group-hover:bg-orange-500 group-hover:bg-opacity-90 transition duration-500">
+//                     <div className="absolute bottom-4 right-4 w-12 h-12 bg-blue-500 bg-opacity-20 backdrop-blur-sm rounded-xl flex items-center justify-center group-hover:bg-blue-500 group-hover:bg-opacity-90 transition duration-500">
 //                       <IconComponent className="w-6 h-6 text-white" />
 //                     </div>
 //                   </div>
 //                   <div className="p-6">
-//                     <h3 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-orange-500 transition duration-300">
+//                     <h3 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-blue-500 transition duration-300">
 //                       {category.name}
 //                     </h3>
 //                     <p className="text-gray-600 mb-4 leading-relaxed">
 //                       {category.description}
 //                     </p>
 //                     <div className="flex items-center justify-between">
-//                       <div className="flex items-center space-x-2 text-orange-500 font-semibold group-hover:text-orange-600 transition duration-300">
+//                       <div className="flex items-center space-x-2 text-blue-500 font-semibold group-hover:text-blue-600 transition duration-300">
 //                         <span>Explore Properties</span>
 //                         <FiArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition duration-300" />
 //                       </div>
@@ -364,7 +366,7 @@ export default PropertyCategories;
 //           <div className="text-center mt-12">
 //             <button
 //               onClick={() => navigate("/properties")}
-//               className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 inline-flex items-center space-x-3"
+//               className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 inline-flex items-center space-x-3"
 //             >
 //               <span>View All Properties</span>
 //               <FiArrowRight className="w-5 h-5" />
