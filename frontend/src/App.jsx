@@ -5,10 +5,8 @@ import Register from "./pages/Register";
 import Properties from "./pages/Properties";
 import PropertyDetails from "./pages/PropertyDetails";
 import CreateProperty from "./pages/CreateProperty";
-import MyProperties from "./pages/MyProperties";
-import Favorites from "./pages/Favorites";
-import Bookings from "./pages/Bookings";
-import Profile from "./pages/Profile";
+import MyProperty from "./pages/MyProperties";
+import Booking from "./pages/Bookings";
 import Layout from "./component/common/Layout";
 import AdminLayout from "./component/common/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/Dashboard";
@@ -17,10 +15,14 @@ import AdminProperties from "./pages/admin/Properties";
 import AdminBookings from "./pages/admin/Bookings";
 import AdminReviews from "./pages/admin/Reviews";
 import AdminAgents from "./pages/admin/AdminAgents";
-import ImageSwapAnimation from "./pages/ImageSwap";
 import Home from "./pages/home/Home";
 import About from "./pages/about/About";
 import Contact from "./pages/about/Contact";
+import UserLayout from "./component/common/user/UserLayout";
+import Dashboard from "./component/userDashboard/Dashboard";
+import Favorites from "./component/userDashboard/Favorites";
+import Profile from "./pages/Profile";
+import AddProperty from "./component/userDashboard/AddProperty";
 
 export default function App() {
   return (
@@ -34,12 +36,15 @@ export default function App() {
           <Route path="property/:id" element={<PropertyDetails />} />
           <Route path="about" element={<About />} />
           <Route path="contact" element={<Contact />} />
-          <Route path="create-property" element={<CreateProperty />} />
-          <Route path="my-properties" element={<MyProperties />} />
+        </Route>
+
+        <Route path="/user-dashboard" element={<UserLayout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="add-property" element={<AddProperty />} />
+          <Route path="my-properties" element={<MyProperty />} />
           <Route path="favorites" element={<Favorites />} />
-          <Route path="bookings" element={<Bookings />} />
+          <Route path="bookings" element={<Booking />} />
           <Route path="profile" element={<Profile />} />
-          <Route path="pro" element={<ImageSwapAnimation />} />
         </Route>
 
         <Route path="/admin-dashboard" element={<AdminLayout />}>
