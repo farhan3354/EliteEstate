@@ -9,10 +9,13 @@ import {
   FiDollarSign,
   FiMapPin,
   FiCalendar,
+  FiMenu,
+  FiX,
 } from "react-icons/fi";
 
 const MyProperties = () => {
   const [activeTab, setActiveTab] = useState("active");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const properties = {
     active: [
@@ -74,62 +77,112 @@ const MyProperties = () => {
     { label: "Inquiries", value: "20", color: "orange" },
   ];
 
+  const tabs = [
+    {
+      id: "active",
+      label: "Active Listings",
+      count: properties.active.length,
+    },
+    {
+      id: "pending",
+      label: "Pending Review",
+      count: properties.pending.length,
+    },
+    {
+      id: "draft",
+      label: "Drafts",
+      count: properties.draft.length,
+    },
+    { id: "sold", label: "Sold/Rented", count: 0 },
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4 max-w-7xl">
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+    <div className="min-h-screen bg-gray-50 py-4 md:py-8">
+      <div className="container mx-auto px-3 sm:px-4 max-w-7xl">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 md:mb-8">
+          <div className="mb-4 lg:mb-0">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
               My Properties
             </h1>
-            <p className="text-gray-600">
+            <p className="text-sm md:text-base text-gray-600">
               Manage your property listings and track performance
             </p>
           </div>
           <Link
-            to="/add-property"
-            className="flex items-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-colors duration-200 mt-4 lg:mt-0"
+            to="/user-dashboard/add-property"
+            className="flex items-center justify-center space-x-2 bg-blue-600 text-white px-4 md:px-6 py-2 md:py-3 rounded-lg md:rounded-xl hover:bg-blue-700 transition-colors duration-200 w-full lg:w-auto text-sm md:text-base"
           >
-            <FiPlus className="w-5 h-5" />
+            <FiPlus className="w-4 h-4 md:w-5 md:h-5" />
             <span>Add New Property</span>
           </Link>
         </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
           {stats.map((stat, index) => (
-            <div key={index} className="bg-white rounded-2xl p-6 shadow-lg">
-              <div className={`text-2xl font-bold text-${stat.color}-600 mb-2`}>
+            <div
+              key={index}
+              className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg"
+            >
+              <div
+                className={`text-xl md:text-2xl font-bold text-${stat.color}-600 mb-1 md:mb-2`}
+              >
                 {stat.value}
               </div>
-              <div className="text-gray-600 text-sm">{stat.label}</div>
+              <div className="text-xs md:text-sm text-gray-600">
+                {stat.label}
+              </div>
             </div>
           ))}
         </div>
+        <div className="lg:hidden bg-white rounded-xl shadow-lg mb-4">
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="w-full flex items-center justify-between p-4 text-left"
+          >
+            <span className="font-medium text-gray-900">
+              {tabs.find((tab) => tab.id === activeTab)?.label}
+              <span className="ml-2 bg-gray-100 text-gray-900 py-0.5 px-2 rounded-full text-xs">
+                {properties[activeTab].length}
+              </span>
+            </span>
+            {mobileMenuOpen ? (
+              <FiX className="w-5 h-5" />
+            ) : (
+              <FiMenu className="w-5 h-5" />
+            )}
+          </button>
 
-        {/* Tabs */}
-        <div className="bg-white rounded-2xl shadow-lg mb-6">
+          {mobileMenuOpen && (
+            <div className="border-t border-gray-200">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    setActiveTab(tab.id);
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`w-full text-left px-4 py-3 border-b border-gray-100 last:border-b-0 ${
+                    activeTab === tab.id
+                      ? "bg-blue-50 text-blue-600"
+                      : "text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  <div className="flex justify-between items-center">
+                    <span>{tab.label}</span>
+                    {tab.count > 0 && (
+                      <span className="bg-gray-100 text-gray-900 py-0.5 px-2 rounded-full text-xs">
+                        {tab.count}
+                      </span>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="hidden lg:block bg-white rounded-2xl shadow-lg mb-6">
           <div className="border-b border-gray-200">
             <nav className="flex space-x-8 px-6">
-              {[
-                {
-                  id: "active",
-                  label: "Active Listings",
-                  count: properties.active.length,
-                },
-                {
-                  id: "pending",
-                  label: "Pending Review",
-                  count: properties.pending.length,
-                },
-                {
-                  id: "draft",
-                  label: "Drafts",
-                  count: properties.draft.length,
-                },
-                { id: "sold", label: "Sold/Rented", count: 0 },
-              ].map((tab) => (
+              {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
@@ -149,68 +202,72 @@ const MyProperties = () => {
               ))}
             </nav>
           </div>
-
-          {/* Property List */}
-          <div className="p-6">
+        </div>
+        <div className="bg-white rounded-xl md:rounded-2xl shadow-lg">
+          <div className="p-4 md:p-6">
             {properties[activeTab].length === 0 ? (
-              <div className="text-center py-12">
-                <FiHome className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <div className="text-center py-8 md:py-12">
+                <FiHome className="w-12 h-12 md:w-16 md:h-16 text-gray-300 mx-auto mb-3 md:mb-4" />
+                <h3 className="text-base md:text-lg font-medium text-gray-900 mb-2">
                   No properties found
                 </h3>
-                <p className="text-gray-600 mb-6">
+                <p className="text-sm md:text-base text-gray-600 mb-4 md:mb-6">
                   You don't have any {activeTab} properties yet.
                 </p>
                 <Link
                   to="/add-property"
-                  className="inline-flex items-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-colors duration-200"
+                  className="inline-flex items-center justify-center space-x-2 bg-blue-600 text-white px-4 md:px-6 py-2 md:py-3 rounded-lg md:rounded-xl hover:bg-blue-700 transition-colors duration-200 text-sm md:text-base w-full sm:w-auto"
                 >
-                  <FiPlus className="w-5 h-5" />
+                  <FiPlus className="w-4 h-4 md:w-5 md:h-5" />
                   <span>Add Your First Property</span>
                 </Link>
               </div>
             ) : (
-              <div className="grid gap-6">
+              <div className="grid gap-4 md:gap-6">
                 {properties[activeTab].map((property) => (
                   <div
                     key={property.id}
-                    className="border border-gray-200 rounded-2xl p-6 hover:shadow-md transition-shadow duration-200"
+                    className="border border-gray-200 rounded-xl md:rounded-2xl p-4 md:p-6 hover:shadow-md transition-shadow duration-200"
                   >
-                    <div className="flex flex-col lg:flex-row lg:items-center gap-6">
-                      {/* Property Image */}
-                      <div className="lg:w-48 lg:h-32">
+                    <div className="flex flex-col lg:flex-row lg:items-center gap-4 md:gap-6">
+                      <div className="w-full lg:w-40 lg:h-28">
                         <img
                           src={property.image}
                           alt={property.title}
-                          className="w-full h-32 lg:h-full object-cover rounded-xl"
+                          className="w-full h-40 lg:h-full object-cover rounded-lg md:rounded-xl"
                         />
                       </div>
-
-                      {/* Property Details */}
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between mb-3">
-                          <div>
-                            <h3 className="text-xl font-bold text-gray-900 mb-2">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2 truncate">
                               {property.title}
                             </h3>
-                            <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
+                            <div className="space-y-2 md:space-y-0 md:flex md:items-center md:space-x-4 text-sm text-gray-600 mb-3">
                               <div className="flex items-center space-x-1">
-                                <FiMapPin className="w-4 h-4" />
-                                <span>{property.location}</span>
+                                <FiMapPin className="w-3 h-3 md:w-4 md:h-4 flex-shrink-0" />
+                                <span className="truncate">
+                                  {property.location}
+                                </span>
                               </div>
                               <div className="flex items-center space-x-1">
-                                <FiDollarSign className="w-4 h-4" />
+                                <FiDollarSign className="w-3 h-3 md:w-4 md:h-4 flex-shrink-0" />
                                 <span>{property.price}</span>
                               </div>
                               <div className="flex items-center space-x-1">
-                                <FiCalendar className="w-4 h-4" />
-                                <span>Listed on {property.date}</span>
+                                <FiCalendar className="w-3 h-3 md:w-4 md:h-4 flex-shrink-0" />
+                                <span className="hidden sm:inline">
+                                  Listed on {property.date}
+                                </span>
+                                <span className="sm:hidden">
+                                  {property.date}
+                                </span>
                               </div>
                             </div>
                           </div>
-                          <div className="flex items-center space-x-2 mb-3 lg:mb-0">
+                          <div className="flex items-center space-x-2 mb-3 lg:mb-0 lg:ml-4">
                             <span
-                              className={`px-3 py-1 rounded-full text-xs font-medium ${
+                              className={`px-2 md:px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
                                 property.status === "For Sale"
                                   ? "bg-green-100 text-green-800"
                                   : property.status === "Under Review"
@@ -222,12 +279,10 @@ const MyProperties = () => {
                             </span>
                           </div>
                         </div>
-
-                        {/* Stats & Actions */}
-                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-                          <div className="flex items-center space-x-6 text-sm text-gray-600 mb-3 lg:mb-0">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+                          <div className="flex items-center space-x-4 md:space-x-6 text-sm text-gray-600">
                             {property.views && (
-                              <div>
+                              <div className="text-xs md:text-sm">
                                 <span className="font-semibold">
                                   {property.views}
                                 </span>{" "}
@@ -235,7 +290,7 @@ const MyProperties = () => {
                               </div>
                             )}
                             {property.inquiries && (
-                              <div>
+                              <div className="text-xs md:text-sm">
                                 <span className="font-semibold">
                                   {property.inquiries}
                                 </span>{" "}
@@ -244,24 +299,29 @@ const MyProperties = () => {
                             )}
                           </div>
 
-                          <div className="flex items-center space-x-3">
+                          <div className="flex items-center justify-between sm:justify-end space-x-2 md:space-x-3">
                             <Link
                               to={`/properties/${property.id}`}
-                              className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
+                              className="flex items-center space-x-1 md:space-x-2 px-2 md:px-4 py-1 md:py-2 text-gray-600 hover:text-blue-600 transition-colors duration-200 text-sm"
+                              title="View"
                             >
-                              <FiEye className="w-4 h-4" />
-                              <span>View</span>
+                              <FiEye className="w-3 h-3 md:w-4 md:h-4" />
+                              <span className="hidden sm:inline">View</span>
                             </Link>
                             <Link
                               to={`/edit-property/${property.id}`}
-                              className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
+                              className="flex items-center space-x-1 md:space-x-2 px-2 md:px-4 py-1 md:py-2 text-gray-600 hover:text-blue-600 transition-colors duration-200 text-sm"
+                              title="Edit"
                             >
-                              <FiEdit className="w-4 h-4" />
-                              <span>Edit</span>
+                              <FiEdit className="w-3 h-3 md:w-4 md:h-4" />
+                              <span className="hidden sm:inline">Edit</span>
                             </Link>
-                            <button className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-red-600 transition-colors duration-200">
-                              <FiTrash2 className="w-4 h-4" />
-                              <span>Delete</span>
+                            <button
+                              className="flex items-center space-x-1 md:space-x-2 px-2 md:px-4 py-1 md:py-2 text-gray-600 hover:text-red-600 transition-colors duration-200 text-sm"
+                              title="Delete"
+                            >
+                              <FiTrash2 className="w-3 h-3 md:w-4 md:h-4" />
+                              <span className="hidden sm:inline">Delete</span>
                             </button>
                           </div>
                         </div>
@@ -279,7 +339,6 @@ const MyProperties = () => {
 };
 
 export default MyProperties;
-
 
 // import React from 'react';
 // import { Link } from 'react-router-dom';
@@ -341,7 +400,7 @@ export default MyProperties;
 //           <h1 className="text-3xl font-bold text-gray-800">My Properties</h1>
 //           <p className="text-gray-600">Manage and track your property listings</p>
 //         </div>
-//         <Link 
+//         <Link
 //           to="/user-dashboard/add-property"
 //           className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
 //         >
@@ -368,8 +427,8 @@ export default MyProperties;
 //       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 //         {properties.map((property) => (
 //           <div key={property.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
-//             <img 
-//               src={property.image} 
+//             <img
+//               src={property.image}
 //               alt={property.title}
 //               className="w-full h-48 object-cover"
 //             />
@@ -382,7 +441,7 @@ export default MyProperties;
 //               </div>
 //               <p className="text-gray-600 text-sm mb-2">{property.location}</p>
 //               <div className="text-lg font-bold text-blue-600 mb-3">AED {property.price.toLocaleString()}</div>
-              
+
 //               <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
 //                 <span>👁️ {property.views} views</span>
 //                 <span>📞 {property.bookings} bookings</span>

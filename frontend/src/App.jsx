@@ -23,6 +23,7 @@ import Dashboard from "./component/userDashboard/Dashboard";
 import Favorites from "./component/userDashboard/Favorites";
 import Profile from "./pages/Profile";
 import AddProperty from "./component/userDashboard/AddProperty";
+import ArrayP from "./pages/ArrayP";
 
 export default function App() {
   return (
@@ -36,6 +37,7 @@ export default function App() {
           <Route path="property/:id" element={<PropertyDetails />} />
           <Route path="about" element={<About />} />
           <Route path="contact" element={<Contact />} />
+          <Route path="task" element={<ArrayP />} />
         </Route>
 
         <Route path="/user-dashboard" element={<UserLayout />}>
