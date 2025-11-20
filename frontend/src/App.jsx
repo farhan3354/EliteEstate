@@ -24,6 +24,17 @@ import Favorites from "./component/userDashboard/Favorites";
 import Profile from "./pages/Profile";
 import AddProperty from "./component/userDashboard/AddProperty";
 import ArrayP from "./pages/ArrayP";
+import BecomeAgent from "./component/agentPage/BecomeAgent";
+import AgentProfile from "./component/agentPage/AgentProfile";
+import Agents from "./component/agentPage/AgentsList";
+import AgentLayout from "./component/common/agent/AgentLayout";
+import AgentDashboard from "./component/agentPage/AgentDashboard";
+import AgentListings from "./component/agentPage/AgentListings ";
+import AgentClients from "./component/agentPage/AgentClients";
+import AgentSchedule from "./component/agentPage/AgentSchedule";
+import AgentInquiries from "./component/agentPage/AgentInquiries";
+import AgentPerformance from "./component/agentPage/AgentPerformance";
+import OwnAgentProfile from "./component/agentPage/OwnAgentProfile";
 
 export default function App() {
   return (
@@ -37,6 +48,9 @@ export default function App() {
           <Route path="property/:id" element={<PropertyDetails />} />
           <Route path="about" element={<About />} />
           <Route path="contact" element={<Contact />} />
+          <Route path="agents" element={<Agents />} />
+          <Route path="agents/:id" element={<AgentProfile />} />
+          <Route path="become-agent" element={<BecomeAgent />} />
           <Route path="task" element={<ArrayP />} />
         </Route>
 
@@ -48,7 +62,17 @@ export default function App() {
           <Route path="bookings" element={<Booking />} />
           <Route path="profile" element={<Profile />} />
         </Route>
-
+        <Route path="/agent" element={<AgentLayout />}>
+          <Route index element={<AgentDashboard />} />
+          <Route path="listings" element={<AgentListings />} />
+          <Route path="add-property" element={<AddProperty />} />{" "}
+          {/* <Route path="edit-property/:id" element={<EditProperty />} /> */}
+          <Route path="clients" element={<AgentClients />} />
+          <Route path="schedule" element={<AgentSchedule />} />
+          <Route path="inquiries" element={<AgentInquiries />} />
+          <Route path="performance" element={<AgentPerformance />} />
+          <Route path="profile" element={<OwnAgentProfile />} />
+        </Route>
         <Route path="/admin-dashboard" element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
           <Route path="users" element={<AdminUsers />} />
