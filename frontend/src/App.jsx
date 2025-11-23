@@ -66,7 +66,6 @@ export default function App() {
           <Route index element={<AgentDashboard />} />
           <Route path="listings" element={<AgentListings />} />
           <Route path="add-property" element={<AddProperty />} />{" "}
-          {/* <Route path="edit-property/:id" element={<EditProperty />} /> */}
           <Route path="clients" element={<AgentClients />} />
           <Route path="schedule" element={<AgentSchedule />} />
           <Route path="inquiries" element={<AgentInquiries />} />
