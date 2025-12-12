@@ -35,6 +35,9 @@ import AgentSchedule from "./component/agentPage/AgentSchedule";
 import AgentInquiries from "./component/agentPage/AgentInquiries";
 import AgentPerformance from "./component/agentPage/AgentPerformance";
 import OwnAgentProfile from "./component/agentPage/OwnAgentProfile";
+import SecureNetWebsite from "./component/ServiceWebsite";
+import FullWebsite from "./component/servicesWebsite/FullWebsite";
+import CompanyProfilePDF from "./component/servicesWebsite/CompanyProfilePDF";
 
 export default function App() {
   return (
@@ -80,6 +83,10 @@ export default function App() {
           <Route path="booking" element={<AdminBookings />} />
           <Route path="reviews" element={<AdminReviews />} />
         </Route>
+
+        <Route path="/servies" element={<SecureNetWebsite />} />
+        <Route path="/a" element={<FullWebsite />} />
+        <Route path="/profile" element={<CompanyProfilePDF />} />
       </Routes>
     </Router>
   );
