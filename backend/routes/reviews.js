@@ -8,7 +8,7 @@ import {
   getMyReviews,
   addReviewResponse,
 } from "../controllers/reviewsController.js";
-import { protect, authorize } from "../middleware/auth.js";
+import { protect } from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -21,6 +21,6 @@ router.get("/my-reviews", getMyReviews);
 router.post("/", createReview);
 router.patch("/:id", updateReview);
 router.delete("/:id", deleteReview);
-router.patch("/:id/response", authorize("agent", "admin"), addReviewResponse);
+router.patch("/:id/response", protect, addReviewResponse);
 
 export default router;

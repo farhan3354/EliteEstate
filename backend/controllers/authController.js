@@ -67,25 +67,9 @@ export const register = async (req, res) => {
   } catch (error) {
     console.error("Registration error:", error);
 
-    if (error.code === 11000) {
-      return res.status(400).json({
-        success: false,
-        message: "User already exists with this email address",
-      });
-    }
-
-    if (error.name === "ValidationError") {
-      const messages = Object.values(error.errors).map((err) => err.message);
-      return res.status(400).json({
-        success: false,
-        message: messages.join(", "),
-      });
-    }
-
     return res.status(500).json({
       success: false,
       message: "Server error during registration",
-      error: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
 };

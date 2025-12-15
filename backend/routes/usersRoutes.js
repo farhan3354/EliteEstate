@@ -6,7 +6,7 @@ import {
   getAgentListings,
   becomeAgent,
 } from "../controllers/userController.js";
-import { protect, authorize } from "../middleware/auth.js";
+import { adminMiddleware, protect } from "../middleware/auth.js";
 import { uploadUserPhoto } from "../middleware/upload.js";
 
 const router = express.Router();
@@ -18,6 +18,6 @@ router.patch("/profile", uploadUserPhoto, updateProfile);
 router.get("/stats", getUserStats);
 router.post("/become-agent", becomeAgent);
 
-router.get("/agent/listings", authorize("agent", "admin"), getAgentListings);
+router.get("/agent/listings", protect, adminMiddleware, getAgentListings);
 
 export default router;
