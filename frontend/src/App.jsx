@@ -38,6 +38,7 @@ import OwnAgentProfile from "./component/agentPage/OwnAgentProfile";
 import SecureNetWebsite from "./component/ServiceWebsite";
 import FullWebsite from "./component/servicesWebsite/FullWebsite";
 import CompanyProfilePDF from "./component/servicesWebsite/CompanyProfilePDF";
+import ProtectRoute from "./protectedRoute/VerifyRoute";
 
 export default function App() {
   return (
@@ -56,34 +57,38 @@ export default function App() {
           <Route path="become-agent" element={<BecomeAgent />} />
           <Route path="task" element={<ArrayP />} />
         </Route>
-
-        <Route path="/user-dashboard" element={<UserLayout />}>
-          <Route index element={<Dashboard />} />
-          <Route path="add-property" element={<AddProperty />} />
-          <Route path="my-properties" element={<MyProperty />} />
-          <Route path="favorites" element={<Favorites />} />
-          <Route path="bookings" element={<Booking />} />
-          <Route path="profile" element={<Profile />} />
+        <Route element={<ProtectRoute allowedRoles={["user"]} />}>
+          <Route path="/user-dashboard" element={<UserLayout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="add-property" element={<AddProperty />} />
+            <Route path="my-properties" element={<MyProperty />} />
+            <Route path="favorites" element={<Favorites />} />
+            <Route path="bookings" element={<Booking />} />
+            <Route path="profile" element={<Profile />} />
+          </Route>
         </Route>
-        <Route path="/agent" element={<AgentLayout />}>
-          <Route index element={<AgentDashboard />} />
-          <Route path="listings" element={<AgentListings />} />
-          <Route path="add-property" element={<AddProperty />} />{" "}
-          <Route path="clients" element={<AgentClients />} />
-          <Route path="schedule" element={<AgentSchedule />} />
-          <Route path="inquiries" element={<AgentInquiries />} />
-          <Route path="performance" element={<AgentPerformance />} />
-          <Route path="profile" element={<OwnAgentProfile />} />
+        <Route element={<ProtectRoute allowedRoles={["agent"]} />}>
+          <Route path="/agent" element={<AgentLayout />}>
+            <Route index element={<AgentDashboard />} />
+            <Route path="listings" element={<AgentListings />} />
+            <Route path="add-property" element={<AddProperty />} />{" "}
+            <Route path="clients" element={<AgentClients />} />
+            <Route path="schedule" element={<AgentSchedule />} />
+            <Route path="inquiries" element={<AgentInquiries />} />
+            <Route path="performance" element={<AgentPerformance />} />
+            <Route path="profile" element={<OwnAgentProfile />} />
+          </Route>
         </Route>
-        <Route path="/admin-dashboard" element={<AdminLayout />}>
-          <Route index element={<AdminDashboard />} />
-          <Route path="users" element={<AdminUsers />} />
-          <Route path="agents" element={<AdminAgents />} />
-          <Route path="properties" element={<AdminProperties />} />
-          <Route path="booking" element={<AdminBookings />} />
-          <Route path="reviews" element={<AdminReviews />} />
+        <Route element={<ProtectRoute allowedRoles={["admin"]} />}>
+          <Route path="/admin-dashboard" element={<AdminLayout />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="users" element={<AdminUsers />} />
+            <Route path="agents" element={<AdminAgents />} />
+            <Route path="properties" element={<AdminProperties />} />
+            <Route path="booking" element={<AdminBookings />} />
+            <Route path="reviews" element={<AdminReviews />} />
+          </Route>
         </Route>
-
         <Route path="/servies" element={<SecureNetWebsite />} />
         <Route path="/a" element={<FullWebsite />} />
         <Route path="/profile" element={<CompanyProfilePDF />} />
