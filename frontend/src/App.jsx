@@ -67,7 +67,7 @@ export default function App() {
             <Route path="profile" element={<Profile />} />
           </Route>
         </Route>
-        <Route element={<ProtectRoute allowedRoles={["agent"]} />}>
+        {/* <Route element={<ProtectRoute allowedRoles={["agent"]} />}> */}
           <Route path="/agent" element={<AgentLayout />}>
             <Route index element={<AgentDashboard />} />
             <Route path="listings" element={<AgentListings />} />
@@ -77,7 +77,7 @@ export default function App() {
             <Route path="inquiries" element={<AgentInquiries />} />
             <Route path="performance" element={<AgentPerformance />} />
             <Route path="profile" element={<OwnAgentProfile />} />
-          </Route>
+          {/* </Route> */}
         </Route>
         <Route element={<ProtectRoute allowedRoles={["admin"]} />}>
           <Route path="/admin-dashboard" element={<AdminLayout />}>

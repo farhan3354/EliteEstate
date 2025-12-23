@@ -1,83 +1,231 @@
-import Property from "../models/property.js";
-import Profile from "../models/profile.js";
-import cloudinary from "../config/cloudinary.js";
+import Property from "../models/Property.js";
 
-// Upload image to Cloudinary
-const uploadToCloudinary = (file) => {
-  return new Promise((resolve, reject) => {
-    const uploadStream = cloudinary.uploader.upload_stream(
-      {
-        folder: "property-listings",
-        transformation: [
-          { width: 800, height: 600, crop: "limit" },
-          { quality: "auto" },
-          { format: "jpg" },
-        ],
-      },
-      (error, result) => {
-        if (error) reject(error);
-        else resolve(result);
+export const createProperty = async (req, res) => {
+  try {
+    console.log("🎯 Create Property API Called");
+
+    // Debug logging
+    console.log("📝 Request body keys:", Object.keys(req.body));
+    console.log("📁 Files received:", req.files?.length || 0);
+
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized: user not found",
+      });
+    }
+
+    // Helper function to safely parse JSON strings from FormData
+    const parseFormDataField = (field) => {
+      if (!field) return null;
+      if (typeof field !== "string") return field;
+      try {
+        return JSON.parse(field);
+      } catch (e) {
+        console.log(`⚠️ Failed to parse field:`, field?.substring(0, 100));
+        return null;
       }
+    };
+
+    // Parse the string fields from FormData
+    const locationData = parseFormDataField(req.body.location) || {};
+    const contactInfoData = parseFormDataField(req.body.contactInfo) || {};
+
+    // Basic validation - ONLY FIELDS THAT EXIST IN SCHEMA
+    const requiredFields = [
+      "title",
+      "description",
+      "price",
+      "purpose",
+      "category",
+      "bedrooms",
+      "bathrooms",
+      "area",
+    ];
+
+    const missingFields = requiredFields.filter((field) => !req.body[field]);
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Missing required fields: ${missingFields.join(", ")}`,
+      });
+    }
+
+    // File validation
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "At least one image is required",
+      });
+    }
+
+    if (req.files.length > 5) {
+      return res.status(400).json({
+        success: false,
+        message: "Maximum 5 files allowed",
+      });
+    }
+
+    // Extract Cloudinary URLs from req.files
+    const images = req.files.map((file) => file.path);
+    console.log("☁️ Cloudinary URLs:", images);
+
+    // Basic property data - ONLY FIELDS THAT EXIST IN SCHEMA
+    const propertyData = {
+      title: req.body.title.trim(),
+      description: req.body.description.trim(),
+      price: parseFloat(req.body.price),
+      purpose: req.body.purpose,
+      category: req.body.category,
+      bedrooms: parseInt(req.body.bedrooms),
+      bathrooms: parseInt(req.body.bathrooms),
+      area: parseFloat(req.body.area),
+      listedBy: userId,
+      status: req.body.status || "active",
+      images,
+    };
+
+    // Handle location - ONLY FIELDS THAT EXIST IN SCHEMA
+    if (locationData && Object.keys(locationData).length > 0) {
+      propertyData.location = {
+        address: locationData.address || "",
+        city: locationData.city || "Abu Dhabi",
+        area: locationData.area || "",
+      };
+    }
+
+    // Handle contact info - ONLY FIELDS THAT EXIST IN SCHEMA
+    if (contactInfoData && Object.keys(contactInfoData).length > 0) {
+      propertyData.contactInfo = {
+        name: contactInfoData.name || "",
+        phone: contactInfoData.phone || "",
+        email: contactInfoData.email || "",
+        showPhone: contactInfoData.showPhone !== false,
+      };
+    }
+
+    // Handle optional fields - ONLY FIELDS THAT EXIST IN SCHEMA
+    if (req.body.yearBuilt) {
+      propertyData.yearBuilt = parseInt(req.body.yearBuilt);
+    }
+    if (req.body.furnishing) {
+      propertyData.furnishing = req.body.furnishing;
+    }
+    if (req.body.areaUnit) {
+      propertyData.areaUnit = req.body.areaUnit;
+    }
+    if (req.body.isUrgent === "true") {
+      propertyData.isUrgent = true;
+    }
+    if (req.body.isVerified === "true") {
+      propertyData.isVerified = true;
+    }
+
+    // NOTE: REMOVED fields that don't exist in schema:
+    // - isFeatured (not in schema)
+    // - features (not in schema)
+    // - amenities (not in schema)
+    // - availableFrom (not in schema)
+    // - coordinates (not in schema)
+    // - community (not in schema)
+
+    console.log(
+      "💾 Creating property with data:",
+      JSON.stringify(propertyData, null, 2)
     );
-    uploadStream.end(file.buffer);
-  });
+
+    // Create the property
+    const property = await Property.create(propertyData);
+
+    console.log("✅ Property created successfully with ID:", property._id);
+
+    return res.status(201).json({
+      success: true,
+      message: "Property created successfully",
+      data: {
+        property,
+      },
+    });
+  } catch (error) {
+    console.error("❌ Property creation failed:", error);
+    console.error("Error name:", error.name);
+    console.error("Error message:", error.message);
+    console.error("Error stack:", error.stack);
+
+    // Handle specific errors
+    if (error.name === "ValidationError") {
+      const messages = Object.values(error.errors).map((err) => err.message);
+      return res.status(400).json({
+        success: false,
+        message: `Validation error: ${messages.join(", ")}`,
+        errors: messages,
+      });
+    }
+
+    // Mongoose duplicate key error
+    if (error.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: "Duplicate entry. This property already exists.",
+      });
+    }
+
+    // Ensure we always send a proper JSON response, not HTML
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error. Please try again later.",
+      error: error.message || "Unknown error",
+    });
+  }
 };
 
 // Get all properties
-export const getAllProperties = async (req, res) => {
+export const getProperties = async (req, res) => {
   try {
     const {
       page = 1,
-      limit = 12,
-      sort = "-createdAt",
+      limit = 10,
+      purpose,
       category,
-      type,
       minPrice,
       maxPrice,
-      bedrooms,
-      location,
     } = req.query;
 
-    // Build filter
-    const filter = { status: "active" };
-    if (category) filter.category = category;
-    if (type) filter.type = type;
-    if (location) filter["location.area"] = { $regex: location, $options: "i" };
-    if (bedrooms) filter.bedrooms = parseInt(bedrooms);
+    const query = { status: "active" };
 
-    // Price filter
+    if (purpose) query.purpose = purpose;
+    if (category) query.category = category;
     if (minPrice || maxPrice) {
-      filter.price = {};
-      if (minPrice) filter.price.$gte = parseInt(minPrice);
-      if (maxPrice) filter.price.$lte = parseInt(maxPrice);
+      query.price = {};
+      if (minPrice) query.price.$gte = Number(minPrice);
+      if (maxPrice) query.price.$lte = Number(maxPrice);
     }
 
-    // Calculate pagination
     const skip = (page - 1) * limit;
 
-    const properties = await Property.find(filter)
-      .populate("listedBy", "name avatar rating company")
-      .sort(sort)
-      .limit(limit * 1)
-      .skip(skip);
+    const properties = await Property.find(query)
+      .populate("listedBy", "name email")
+      .sort("-createdAt")
+      .skip(skip)
+      .limit(parseInt(limit));
 
-    const total = await Property.countDocuments(filter);
+    const total = await Property.countDocuments(query);
 
     res.status(200).json({
       success: true,
-      results: properties.length,
+      count: properties.length,
       total,
-      page: parseInt(page),
-      pages: Math.ceil(total / limit),
       data: {
         properties,
       },
     });
   } catch (error) {
+    console.error("Get properties error:", error);
     res.status(500).json({
       success: false,
-      message: "Error fetching properties",
-      error: error.message,
+      message: "Failed to fetch properties",
     });
   }
 };
@@ -87,7 +235,7 @@ export const getProperty = async (req, res) => {
   try {
     const property = await Property.findById(req.params.id).populate(
       "listedBy",
-      "name email phone avatar company rating reviewCount"
+      "name email phone"
     );
 
     if (!property) {
@@ -104,65 +252,10 @@ export const getProperty = async (req, res) => {
       },
     });
   } catch (error) {
+    console.error("Get property error:", error);
     res.status(500).json({
       success: false,
-      message: "Error fetching property",
-      error: error.message,
-    });
-  }
-};
-
-// Create property
-export const createProperty = async (req, res) => {
-  try {
-    // Upload images
-    const imageUploads = req.files.map(uploadToCloudinary);
-    const uploadedImages = await Promise.all(imageUploads);
-
-    const images = uploadedImages.map((img, index) => ({
-      url: img.secure_url,
-      public_id: img.public_id,
-      isPrimary: index === 0,
-    }));
-
-    // Prepare property data
-    const propertyData = {
-      ...req.body,
-      images,
-      listedBy: req.user.id,
-      contactInfo: {
-        name: req.user.name,
-        phone: req.user.phone,
-        email: req.user.email,
-        showPhone: req.body.showPhone !== "false",
-      },
-    };
-
-    // Parse JSON fields
-    if (req.body.amenities) {
-      propertyData.amenities = JSON.parse(req.body.amenities);
-    }
-
-    const property = await Property.create(propertyData);
-
-    // Update user's property count
-    await Profile.findOneAndUpdate(
-      { user: req.user.id },
-      { $inc: { propertiesListed: 1 } }
-    );
-
-    res.status(201).json({
-      success: true,
-      message: "Property created successfully",
-      data: {
-        property,
-      },
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Error creating property",
-      error: error.message,
+      message: "Failed to fetch property",
     });
   }
 };
@@ -179,55 +272,76 @@ export const updateProperty = async (req, res) => {
       });
     }
 
-    // Check ownership
-    if (
-      property.listedBy.toString() !== req.user.id &&
-      req.user.role !== "admin"
-    ) {
+    // Check if user owns the property
+    if (property.listedBy.toString() !== req.user.id) {
       return res.status(403).json({
         success: false,
         message: "Not authorized to update this property",
       });
     }
 
-    let updateData = { ...req.body };
+    // Update basic fields - ONLY FIELDS THAT EXIST IN SCHEMA
+    const updatableFields = [
+      "title",
+      "description",
+      "price",
+      "purpose",
+      "category",
+      "bedrooms",
+      "bathrooms",
+      "area",
+      "yearBuilt",
+      "furnishing",
+      "isUrgent",
+      "isVerified",
+      "status",
+      "areaUnit",
+    ];
+
+    updatableFields.forEach((field) => {
+      if (req.body[field] !== undefined) {
+        property[field] = req.body[field];
+      }
+    });
+
+    // Update location
+    if (req.body.location) {
+      try {
+        property.location = JSON.parse(req.body.location);
+      } catch (e) {
+        console.log("Failed to parse location:", e);
+      }
+    }
+
+    // Update contact info
+    if (req.body.contactInfo) {
+      try {
+        property.contactInfo = JSON.parse(req.body.contactInfo);
+      } catch (e) {
+        console.log("Failed to parse contact info:", e);
+      }
+    }
 
     // Handle new images
     if (req.files && req.files.length > 0) {
-      const imageUploads = req.files.map(uploadToCloudinary);
-      const uploadedImages = await Promise.all(imageUploads);
-      const newImages = uploadedImages.map((img) => ({
-        url: img.secure_url,
-        public_id: img.public_id,
-        isPrimary: false,
-      }));
-
-      updateData.images = [...property.images, ...newImages];
+      const newImages = req.files.map((file) => file.path);
+      property.images = [...property.images, ...newImages];
     }
 
-    // Parse JSON fields
-    if (req.body.amenities) {
-      updateData.amenities = JSON.parse(req.body.amenities);
-    }
-
-    const updatedProperty = await Property.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      { new: true, runValidators: true }
-    ).populate("listedBy", "name avatar rating company");
+    await property.save();
 
     res.status(200).json({
       success: true,
       message: "Property updated successfully",
       data: {
-        property: updatedProperty,
+        property,
       },
     });
   } catch (error) {
+    console.error("Update property error:", error);
     res.status(500).json({
       success: false,
-      message: "Error updating property",
-      error: error.message,
+      message: "Failed to update property",
     });
   }
 };
@@ -244,92 +358,48 @@ export const deleteProperty = async (req, res) => {
       });
     }
 
-    // Check ownership
-    if (
-      property.listedBy.toString() !== req.user.id &&
-      req.user.role !== "admin"
-    ) {
+    // Check if user owns the property
+    if (property.listedBy.toString() !== req.user.id) {
       return res.status(403).json({
         success: false,
         message: "Not authorized to delete this property",
       });
     }
 
-    // Delete images from Cloudinary
-    if (property.images.length > 0) {
-      const deletePromises = property.images.map((image) =>
-        cloudinary.uploader.destroy(image.public_id)
-      );
-      await Promise.all(deletePromises);
-    }
-
-    await Property.findByIdAndDelete(req.params.id);
-
-    // Update user's property count
-    await Profile.findOneAndUpdate(
-      { user: req.user.id },
-      { $inc: { propertiesListed: -1 } }
-    );
+    await property.deleteOne();
 
     res.status(200).json({
       success: true,
       message: "Property deleted successfully",
     });
   } catch (error) {
+    console.error("Delete property error:", error);
     res.status(500).json({
       success: false,
-      message: "Error deleting property",
-      error: error.message,
+      message: "Failed to delete property",
     });
   }
 };
 
-// Get featured properties
-export const getFeaturedProperties = async (req, res) => {
-  try {
-    const properties = await Property.find({
-      isFeatured: true,
-      status: "active",
-    })
-      .populate("listedBy", "name avatar rating company")
-      .limit(8)
-      .sort("-createdAt");
-
-    res.status(200).json({
-      success: true,
-      results: properties.length,
-      data: {
-        properties,
-      },
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Error fetching featured properties",
-      error: error.message,
-    });
-  }
-};
-
-// Get user's properties
+// Get user properties
 export const getUserProperties = async (req, res) => {
   try {
-    const properties = await Property.find({ listedBy: req.user.id })
-      .populate("listedBy", "name avatar rating company")
-      .sort("-createdAt");
+    const properties = await Property.find({ listedBy: req.user.id }).sort(
+      "-createdAt"
+    );
 
     res.status(200).json({
       success: true,
-      results: properties.length,
+      count: properties.length,
       data: {
         properties,
       },
     });
   } catch (error) {
+    console.error("Get user properties error:", error);
     res.status(500).json({
       success: false,
-      message: "Error fetching user properties",
-      error: error.message,
+      message: "Failed to fetch user properties",
     });
   }
 };
@@ -337,110 +407,45 @@ export const getUserProperties = async (req, res) => {
 // Search properties
 export const searchProperties = async (req, res) => {
   try {
-    const { q, category, type, minPrice, maxPrice, bedrooms, location, area } =
-      req.query;
+    const { q, purpose, category, minPrice, maxPrice, city } = req.query;
 
-    let query = { status: "active" };
+    const query = { status: "active" };
 
-    // Text search
     if (q) {
       query.$or = [
         { title: { $regex: q, $options: "i" } },
         { description: { $regex: q, $options: "i" } },
-        { "location.area": { $regex: q, $options: "i" } },
+        { "location.address": { $regex: q, $options: "i" } },
       ];
     }
 
-    // Filters
+    if (purpose) query.purpose = purpose;
     if (category) query.category = category;
-    if (type) query.type = type;
-    if (bedrooms) query.bedrooms = parseInt(bedrooms);
-    if (location) query["location.area"] = { $regex: location, $options: "i" };
-    if (area) query.area = { $gte: parseInt(area) };
+    if (city) query["location.city"] = { $regex: city, $options: "i" };
 
-    // Price range
     if (minPrice || maxPrice) {
       query.price = {};
-      if (minPrice) query.price.$gte = parseInt(minPrice);
-      if (maxPrice) query.price.$lte = parseInt(maxPrice);
+      if (minPrice) query.price.$gte = Number(minPrice);
+      if (maxPrice) query.price.$lte = Number(maxPrice);
     }
 
     const properties = await Property.find(query)
-      .populate("listedBy", "name avatar rating company")
+      .populate("listedBy", "name email")
       .sort("-createdAt")
-      .limit(20);
+      .limit(50);
 
     res.status(200).json({
       success: true,
-      results: properties.length,
+      count: properties.length,
       data: {
         properties,
       },
     });
   } catch (error) {
+    console.error("Search properties error:", error);
     res.status(500).json({
       success: false,
-      message: "Error searching properties",
-      error: error.message,
-    });
-  }
-};
-
-// Get similar properties
-export const getSimilarProperties = async (req, res) => {
-  try {
-    const property = await Property.findById(req.params.id);
-
-    if (!property) {
-      return res.status(404).json({
-        success: false,
-        message: "Property not found",
-      });
-    }
-
-    const similarProperties = await Property.find({
-      _id: { $ne: property._id },
-      category: property.category,
-      type: property.type,
-      status: "active",
-      "location.area": property.location.area,
-    })
-      .populate("listedBy", "name avatar rating company")
-      .limit(4)
-      .sort("-createdAt");
-
-    res.status(200).json({
-      success: true,
-      results: similarProperties.length,
-      data: {
-        properties: similarProperties,
-      },
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Error fetching similar properties",
-      error: error.message,
-    });
-  }
-};
-
-// Increment views
-export const incrementViews = async (req, res) => {
-  try {
-    await Property.findByIdAndUpdate(req.params.id, {
-      $inc: { views: 1 },
-    });
-
-    res.status(200).json({
-      success: true,
-      message: "View count updated",
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Error updating views",
-      error: error.message,
+      message: "Failed to search properties",
     });
   }
 };

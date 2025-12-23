@@ -4,26 +4,25 @@ const propertySchema = new mongoose.Schema(
   {
     title: {
       type: String,
-      required: [true, "Please provide a property title"],
+      required: true,
       trim: true,
-      maxlength: [200, "Title cannot be more than 200 characters"],
     },
     description: {
       type: String,
-      required: [true, "Please provide a property description"],
+      required: true,
     },
     price: {
       type: Number,
-      required: [true, "Please provide the property price"],
+      required: true,
     },
-    type: {
+    purpose: {
       type: String,
-      required: [true, "Please specify property type"],
-      enum: ["sale", "rent"],
+      required: true,
+      enum: ["sale", "rent", "lease"],
     },
     category: {
       type: String,
-      required: [true, "Please specify property category"],
+      required: true,
       enum: [
         "apartments",
         "villas",
@@ -37,67 +36,34 @@ const propertySchema = new mongoose.Schema(
     },
     bedrooms: {
       type: Number,
-      required: [true, "Please specify number of bedrooms"],
+      required: true,
     },
     bathrooms: {
       type: Number,
-      required: [true, "Please specify number of bathrooms"],
+      required: true,
     },
     area: {
       type: Number,
-      required: [true, "Please specify area"],
+      required: true,
     },
-    yearBuilt: Number,
-    furnishing: {
-      type: String,
-      enum: ["furnished", "unfurnished", "semi-furnished"],
-    },
-    location: {
-      address: {
-        type: String,
-        required: [true, "Please provide the address"],
-      },
-      city: {
-        type: String,
-        default: "Abu Dhabi",
-      },
-      area: {
-        type: String,
-        required: [true, "Please specify the area"],
-      },
-      community: String,
-      coordinates: {
-        lat: Number,
-        lng: Number,
-      },
-    },
-    features: [String],
-    amenities: {
-      building: [String],
-      apartment: [String],
-      community: [String],
-    },
-    images: [
-      {
-        url: String,
-        public_id: String,
-        isPrimary: {
-          type: Boolean,
-          default: false,
-        },
-      },
-    ],
-    videos: [
-      {
-        url: String,
-        thumbnail: String,
-      },
-    ],
-    virtualTour: String,
+    images: [{ type: String }],
     listedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+    },
+    status: {
+      type: String,
+      default: "active",
+      enum: ["active", "sold", "rented", "inactive"],
+    },
+    location: {
+      address: String,
+      city: {
+        type: String,
+        default: "Abu Dhabi",
+      },
+      area: String,
     },
     contactInfo: {
       name: String,
@@ -108,12 +74,23 @@ const propertySchema = new mongoose.Schema(
         default: true,
       },
     },
-    status: {
+
+    yearBuilt: Number,
+    furnishing: {
       type: String,
-      enum: ["active", "sold", "rented", "inactive", "expired"],
-      default: "active",
+      enum: ["furnished", "unfurnished", "semi-furnished"],
     },
-    isFeatured: {
+    priceType: {
+      type: String,
+      enum: ["total", "per-year", "per-month"],
+      default: "total",
+    },
+    areaUnit: {
+      type: String,
+      enum: ["sqft", "sqm"],
+      default: "sqft",
+    },
+    isUrgent: {
       type: Boolean,
       default: false,
     },
@@ -121,34 +98,11 @@ const propertySchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    isUrgent: {
-      type: Boolean,
-      default: false,
-    },
-    views: {
-      type: Number,
-      default: 0,
-    },
-    favoritesCount: {
-      type: Number,
-      default: 0,
-    },
-    expiryDate: {
-      type: Date,
-      default: () => new Date(+new Date() + 30 * 24 * 60 * 60 * 1000),
-    },
-    availableFrom: Date,
   },
   {
     timestamps: true,
   }
 );
-
-propertySchema.index({ "location.coordinates": "2dsphere" });
-propertySchema.index({ category: 1, type: 1 });
-propertySchema.index({ price: 1 });
-propertySchema.index({ createdAt: -1 });
-propertySchema.index({ isFeatured: -1, createdAt: -1 });
 
 const Property =
   mongoose.models.Property || mongoose.model("Property", propertySchema);

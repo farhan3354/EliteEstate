@@ -23,7 +23,7 @@ app.use(cookieParser());
 
 app.use("/api", authRoutes);
 app.use("/api/v1/users", userRoutes);
-app.use("/api/v1/properties", propertyRoutes);
+app.use("/api/properties", propertyRoutes);
 app.use("/api/v1/favorites", favoriteRoutes);
 app.use("/api/v1/reviews", reviewRoutes);
 app.use("/api/v1/bookings", bookingRoutes);
