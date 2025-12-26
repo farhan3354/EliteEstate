@@ -44,7 +44,7 @@ export default function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Layout />}>
+        {/* <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
@@ -67,7 +67,7 @@ export default function App() {
             <Route path="profile" element={<Profile />} />
           </Route>
         </Route>
-        {/* <Route element={<ProtectRoute allowedRoles={["agent"]} />}> */}
+        <Route element={<ProtectRoute allowedRoles={["agent"]} />}>
           <Route path="/agent" element={<AgentLayout />}>
             <Route index element={<AgentDashboard />} />
             <Route path="listings" element={<AgentListings />} />
@@ -77,7 +77,7 @@ export default function App() {
             <Route path="inquiries" element={<AgentInquiries />} />
             <Route path="performance" element={<AgentPerformance />} />
             <Route path="profile" element={<OwnAgentProfile />} />
-          {/* </Route> */}
+          </Route>
         </Route>
         <Route element={<ProtectRoute allowedRoles={["admin"]} />}>
           <Route path="/admin-dashboard" element={<AdminLayout />}>
@@ -88,9 +88,9 @@ export default function App() {
             <Route path="booking" element={<AdminBookings />} />
             <Route path="reviews" element={<AdminReviews />} />
           </Route>
-        </Route>
+        </Route> */}
         <Route path="/servies" element={<SecureNetWebsite />} />
-        <Route path="/a" element={<FullWebsite />} />
+        <Route path="/" element={<FullWebsite />} />
         <Route path="/profile" element={<CompanyProfilePDF />} />
       </Routes>
     </Router>
