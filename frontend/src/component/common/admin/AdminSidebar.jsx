@@ -8,6 +8,7 @@ const AdminSidebar = () => {
   const menuItems = [
     { path: "/admin-dashboard", label: "Dashboard", icon: "📊" },
     { path: "/admin-dashboard/users", label: "Users", icon: "👥" },
+    { path: "/admin-dashboard/owners", label: "Owners", icon: "🤵" },
     { path: "/admin-dashboard/agents", label: "Agents", icon: "🤵" },
     { path: "/admin-dashboard/properties", label: "Properties", icon: "🏠" },
     { path: "/admin-dashboard/booking", label: "Bookings", icon: "📅" },

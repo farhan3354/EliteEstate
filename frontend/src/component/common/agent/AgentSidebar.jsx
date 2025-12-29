@@ -84,25 +84,6 @@ const AgentSidebar = () => {
     <>
       <aside className="lg:w-64 w-20 bg-white shadow-sm border-r border-gray-200 h-screen sticky top-0 overflow-y-auto transition-all duration-300">
         <div className="p-4 lg:p-6">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center lg:space-x-3 justify-center lg:justify-start">
-              <img
-                src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100"
-                alt="Profile"
-                className="w-10 h-10 rounded-full border-2 border-blue-200"
-              />
-              <div className="hidden lg:block">
-                <div className="font-semibold text-gray-800">farhan</div>
-                <div className="text-sm text-gray-500">Agent</div>
-              </div>
-            </div>
-            <button className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200">
-              <FiX className="w-4 h-4 text-gray-600" />
-            </button>
-          </div>
-
-          {/* Navigation Menu */}
           <nav className="space-y-2">
             {menuItems.map((item) => {
               const Icon = item.icon;
@@ -144,8 +125,6 @@ const AgentSidebar = () => {
               );
             })}
           </nav>
-
-          {/* Quick Stats */}
           <div className="mt-8 lg:p-4 p-3 bg-gray-50 rounded-lg">
             <div className="hidden lg:block">
               <h3 className="font-semibold text-gray-800 mb-3">Agent Stats</h3>
@@ -188,8 +167,6 @@ const AgentSidebar = () => {
               </div>
             </div>
           </div>
-
-          {/* Logout Button */}
           <div className="mt-6">
             <button className="flex items-center rounded-lg transition-all duration-200 group relative lg:justify-start justify-center lg:px-4 lg:py-3 p-3 text-gray-600 hover:bg-gray-50 hover:text-gray-800 w-full">
               <div className="flex items-center lg:space-x-3">

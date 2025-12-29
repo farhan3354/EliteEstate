@@ -10,7 +10,7 @@ const UserLayout = () => {
       <div className="flex">
         <AgentSidebar />
         <main className="flex-1 ml-0 lg:ml-8">
-          <div>
+          <div className="mt-2">
             <Outlet />
           </div>
         </main>

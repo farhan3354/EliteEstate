@@ -39,12 +39,24 @@ import SecureNetWebsite from "./component/ServiceWebsite";
 import FullWebsite from "./component/servicesWebsite/FullWebsite";
 import CompanyProfilePDF from "./component/servicesWebsite/CompanyProfilePDF";
 import ProtectRoute from "./protectedRoute/VerifyRoute";
+import BecomeOwner from "./component/BecomeOwner";
+import OwnerLayout from "./component/common/owner/OwnerLayout";
+import OwnerDashboard from "./component/owner/OwnerDashboard";
+import OWnerProperties from "./component/owner/OwnerPropertier";
+import AssignAgent from "./component/owner/AssignAgent";
+import PendingProperties from "./pages/admin/PendingProperties";
+import AdminCommissions from "./pages/admin/AdminCommissions";
+import AdminOwners from "./pages/admin/AdminOwners";
+import NotFound from "./pages/NotFound";
+import EditProperty from "./pages/EditProperty";
+import OwnerInquiries from "./component/owner/OwnerInquiries";
+import OwnerAssignedAgents from "./component/owner/OwnerAssignedAgents";
 
 export default function App() {
   return (
     <Router>
       <Routes>
-        {/* <Route path="/" element={<Layout />}>
+        <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
@@ -55,42 +67,62 @@ export default function App() {
           <Route path="agents" element={<Agents />} />
           <Route path="agents/:id" element={<AgentProfile />} />
           <Route path="become-agent" element={<BecomeAgent />} />
+          <Route path="become-owner" element={<BecomeOwner />} />
           <Route path="task" element={<ArrayP />} />
+          <Route path="*" element={<NotFound />} />
         </Route>
-        <Route element={<ProtectRoute allowedRoles={["user"]} />}>
-          <Route path="/user-dashboard" element={<UserLayout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="add-property" element={<AddProperty />} />
-            <Route path="my-properties" element={<MyProperty />} />
-            <Route path="favorites" element={<Favorites />} />
-            <Route path="bookings" element={<Booking />} />
-            <Route path="profile" element={<Profile />} />
-          </Route>
+        {/* <Route element={<ProtectRoute allowedRoles={["user"]} />}> */}
+        <Route path="/user-dashboard" element={<UserLayout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="add-property" element={<AddProperty />} />
+          <Route path="my-properties" element={<MyProperty />} />
+          <Route path="favorites" element={<Favorites />} />
+          <Route path="bookings" element={<Booking />} />
+          <Route path="profile" element={<Profile />} />
+          {/* </Route> */}
         </Route>
-        <Route element={<ProtectRoute allowedRoles={["agent"]} />}>
-          <Route path="/agent" element={<AgentLayout />}>
-            <Route index element={<AgentDashboard />} />
-            <Route path="listings" element={<AgentListings />} />
-            <Route path="add-property" element={<AddProperty />} />{" "}
-            <Route path="clients" element={<AgentClients />} />
-            <Route path="schedule" element={<AgentSchedule />} />
-            <Route path="inquiries" element={<AgentInquiries />} />
-            <Route path="performance" element={<AgentPerformance />} />
-            <Route path="profile" element={<OwnAgentProfile />} />
-          </Route>
+        {/* <Route element={<ProtectRoute allowedRoles={["owner"]} />}> */}
+        <Route path="/owner-dashboard" element={<OwnerLayout />}>
+          <Route index element={<OwnerDashboard />} />
+          <Route path="add-property" element={<CreateProperty />} />
+          <Route path="my-properties" element={<OWnerProperties />} />
+          <Route path="property/:id/edit" element={<EditProperty />} />
+          <Route path="inquiries" element={<OwnerInquiries />} />
+          <Route path="assign-agent" element={<AssignAgent />} />
+          <Route path="assigned-agents" element={<OwnerAssignedAgents />} />
+          <Route path="profile" element={<Profile />} />
         </Route>
-        <Route element={<ProtectRoute allowedRoles={["admin"]} />}>
-          <Route path="/admin-dashboard" element={<AdminLayout />}>
-            <Route index element={<AdminDashboard />} />
-            <Route path="users" element={<AdminUsers />} />
-            <Route path="agents" element={<AdminAgents />} />
-            <Route path="properties" element={<AdminProperties />} />
-            <Route path="booking" element={<AdminBookings />} />
-            <Route path="reviews" element={<AdminReviews />} />
-          </Route>
-        </Route> */}
+        {/* </Route> */}
+        {/* <Route element={<ProtectRoute allowedRoles={["agent"]} />}> */}
+        <Route path="/agent" element={<AgentLayout />}>
+          <Route index element={<AgentDashboard />} />
+          <Route path="listings" element={<AgentListings />} />
+          <Route path="clients" element={<AgentClients />} />
+          <Route path="inquiries" element={<AgentInquiries />} />
+          <Route path="schedule" element={<AgentSchedule />} />
+          <Route path="add-property" element={<AddProperty />} />{" "}
+          <Route path="performance" element={<AgentPerformance />} />
+          <Route path="profile" element={<OwnAgentProfile />} />
+        </Route>
+        {/* </Route> */}
+        {/* <Route element={<ProtectRoute allowedRoles={["admin"]} />}> */}
+        <Route path="/admin-dashboard" element={<AdminLayout />}>
+          <Route index element={<AdminDashboard />} />
+          <Route path="users" element={<AdminUsers />} />
+          <Route path="owners" element={<AdminOwners />} />
+          <Route path="agents" element={<AdminAgents />} />
+          <Route path="properties" element={<AdminProperties />} />
+          <Route path="properties/pending" element={<PendingProperties />} />
+          <Route path="reviews" element={<AdminReviews />} />
+          <Route path="commissions" element={<AdminCommissions />} />
+          <Route path="bookings" element={<AdminBookings />} />
+          {/* <Route path="reports" element={<AdminReports />} /> */}
+          {/* <Route path="featured" element={<FeaturedListings />} /> */}
+          {/* <Route path="settings" element={<AdminSettings />} /> */}
+        </Route>
+
         <Route path="/servies" element={<SecureNetWebsite />} />
-        <Route path="/" element={<FullWebsite />} />
+        <Route path="/a" element={<FullWebsite />} />
         <Route path="/profile" element={<CompanyProfilePDF />} />
       </Routes>
     </Router>
