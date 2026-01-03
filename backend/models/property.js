@@ -55,7 +55,7 @@ const propertySchema = new mongoose.Schema(
     status: {
       type: String,
       default: "active",
-      enum: ["active", "sold", "rented", "inactive"],
+      enum: ["active", "sold", "rented", "inactive","unsold","unrent"],
     },
     location: {
       address: String,

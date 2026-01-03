@@ -28,7 +28,7 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["user", "agent", "landlord", "admin"], // Changed to match frontend needs
+      enum: ["user", "agent", "landlord","owner", "admin"], 
       default: "tenant",
     },
     status: {

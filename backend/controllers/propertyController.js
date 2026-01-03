@@ -1,10 +1,8 @@
-import Property from "../models/Property.js";
+import Property from "../models/property.js";
 
 export const createProperty = async (req, res) => {
   try {
     console.log("🎯 Create Property API Called");
-
-    // Debug logging
     console.log("📝 Request body keys:", Object.keys(req.body));
     console.log("📁 Files received:", req.files?.length || 0);
 
@@ -16,7 +14,6 @@ export const createProperty = async (req, res) => {
       });
     }
 
-    // Helper function to safely parse JSON strings from FormData
     const parseFormDataField = (field) => {
       if (!field) return null;
       if (typeof field !== "string") return field;
@@ -28,11 +25,9 @@ export const createProperty = async (req, res) => {
       }
     };
 
-    // Parse the string fields from FormData
     const locationData = parseFormDataField(req.body.location) || {};
     const contactInfoData = parseFormDataField(req.body.contactInfo) || {};
 
-    // Basic validation - ONLY FIELDS THAT EXIST IN SCHEMA
     const requiredFields = [
       "title",
       "description",
@@ -53,7 +48,6 @@ export const createProperty = async (req, res) => {
       });
     }
 
-    // File validation
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({
         success: false,
@@ -68,11 +62,9 @@ export const createProperty = async (req, res) => {
       });
     }
 
-    // Extract Cloudinary URLs from req.files
     const images = req.files.map((file) => file.path);
     console.log("☁️ Cloudinary URLs:", images);
 
-    // Basic property data - ONLY FIELDS THAT EXIST IN SCHEMA
     const propertyData = {
       title: req.body.title.trim(),
       description: req.body.description.trim(),
@@ -87,7 +79,6 @@ export const createProperty = async (req, res) => {
       images,
     };
 
-    // Handle location - ONLY FIELDS THAT EXIST IN SCHEMA
     if (locationData && Object.keys(locationData).length > 0) {
       propertyData.location = {
         address: locationData.address || "",
@@ -96,7 +87,6 @@ export const createProperty = async (req, res) => {
       };
     }
 
-    // Handle contact info - ONLY FIELDS THAT EXIST IN SCHEMA
     if (contactInfoData && Object.keys(contactInfoData).length > 0) {
       propertyData.contactInfo = {
         name: contactInfoData.name || "",
@@ -106,7 +96,6 @@ export const createProperty = async (req, res) => {
       };
     }
 
-    // Handle optional fields - ONLY FIELDS THAT EXIST IN SCHEMA
     if (req.body.yearBuilt) {
       propertyData.yearBuilt = parseInt(req.body.yearBuilt);
     }
@@ -123,20 +112,11 @@ export const createProperty = async (req, res) => {
       propertyData.isVerified = true;
     }
 
-    // NOTE: REMOVED fields that don't exist in schema:
-    // - isFeatured (not in schema)
-    // - features (not in schema)
-    // - amenities (not in schema)
-    // - availableFrom (not in schema)
-    // - coordinates (not in schema)
-    // - community (not in schema)
-
     console.log(
       "💾 Creating property with data:",
       JSON.stringify(propertyData, null, 2)
     );
 
-    // Create the property
     const property = await Property.create(propertyData);
 
     console.log("✅ Property created successfully with ID:", property._id);
@@ -153,8 +133,6 @@ export const createProperty = async (req, res) => {
     console.error("Error name:", error.name);
     console.error("Error message:", error.message);
     console.error("Error stack:", error.stack);
-
-    // Handle specific errors
     if (error.name === "ValidationError") {
       const messages = Object.values(error.errors).map((err) => err.message);
       return res.status(400).json({
@@ -163,16 +141,12 @@ export const createProperty = async (req, res) => {
         errors: messages,
       });
     }
-
-    // Mongoose duplicate key error
     if (error.code === 11000) {
       return res.status(400).json({
         success: false,
         message: "Duplicate entry. This property already exists.",
       });
     }
-
-    // Ensure we always send a proper JSON response, not HTML
     return res.status(500).json({
       success: false,
       message: "Internal server error. Please try again later.",
@@ -180,56 +154,6 @@ export const createProperty = async (req, res) => {
     });
   }
 };
-
-// Get all properties
-// export const getProperties = async (req, res) => {
-//   try {
-//     const {
-//       page = 1,
-//       limit = 10,
-//       purpose,
-//       category,
-//       minPrice,
-//       maxPrice,
-//     } = req.query;
-
-//     const query = { status: "active" };
-
-//     if (purpose) query.purpose = purpose;
-//     if (category) query.category = category;
-//     if (minPrice || maxPrice) {
-//       query.price = {};
-//       if (minPrice) query.price.$gte = Number(minPrice);
-//       if (maxPrice) query.price.$lte = Number(maxPrice);
-//     }
-
-//     const skip = (page - 1) * limit;
-
-//     const properties = await Property.find(query)
-//       .populate("listedBy", "name email")
-//       .sort("-createdAt")
-//       .skip(skip)
-//       .limit(parseInt(limit));
-
-//     const total = await Property.countDocuments(query);
-
-//     res.status(200).json({
-//       success: true,
-//       count: properties.length,
-//       total,
-//       data: {
-//         properties,
-//       },
-//     });
-//   } catch (error) {
-//     console.error("Get properties error:", error);
-//     res.status(500).json({
-//       success: false,
-//       message: "Failed to fetch properties",
-//     });
-//   }
-// };
-// In your backend route handlers
 
 // Search properties with all filters
 export const searchProperties = async (req, res) => {
@@ -654,3 +578,226 @@ export const getUserProperties = async (req, res) => {
     });
   }
 };
+
+// Update property status
+export const updatePropertyStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    // Validate status
+    const validStatuses = [
+      "active",
+      "sold",
+      "rented",
+      "inactive",
+      "pending",
+      "draft",
+    ];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid status. Must be one of: ${validStatuses.join(", ")}`,
+      });
+    }
+
+    const property = await Property.findById(id);
+
+    if (!property) {
+      return res.status(404).json({
+        success: false,
+        message: "Property not found",
+      });
+    }
+
+    // Check if user owns the property or is admin
+    const user = req.user;
+    const isOwner = property.listedBy.toString() === user.id;
+    const isAdmin = user.role === "admin";
+
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to update this property status",
+      });
+    }
+
+    // Update status
+    property.status = status;
+
+    // Add status change history
+    if (!property.statusHistory) {
+      property.statusHistory = [];
+    }
+
+    property.statusHistory.push({
+      status: status,
+      changedBy: user.id,
+      changedAt: new Date(),
+      reason: req.body.reason || "Status updated",
+    });
+
+    await property.save();
+
+    res.status(200).json({
+      success: true,
+      message: `Property status updated to ${status}`,
+      data: {
+        property,
+      },
+    });
+  } catch (error) {
+    console.error("Update property status error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update property status",
+    });
+  }
+};
+
+// Get all properties for admin (with all statuses)
+export const getAdminProperties = async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 10,
+      status,
+      purpose,
+      category,
+      search,
+      sortBy = "createdAt",
+      sortOrder = "desc",
+    } = req.query;
+
+    const query = {};
+
+    // Filter by status
+    if (status && status !== "all") {
+      query.status = status;
+    }
+
+    // Filter by purpose
+    if (purpose && purpose !== "all") {
+      query.purpose = purpose;
+    }
+
+    // Filter by category
+    if (category && category !== "all") {
+      query.category = category;
+    }
+
+    // Search functionality
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+        { "location.address": { $regex: search, $options: "i" } },
+        { "location.area": { $regex: search, $options: "i" } },
+      ];
+    }
+
+    const skip = (page - 1) * limit;
+
+    // Get properties with populated user data
+    const properties = await Property.find(query)
+      .populate({
+        path: "listedBy",
+        select: "name email phone",
+      })
+      .skip(skip)
+      .limit(parseInt(limit))
+      .sort({ [sortBy]: sortOrder === "desc" ? -1 : 1 });
+
+    const total = await Property.countDocuments(query);
+
+    // Get property statistics
+    const totalProperties = await Property.countDocuments();
+    const activeProperties = await Property.countDocuments({
+      status: "active",
+    });
+    const soldProperties = await Property.countDocuments({ status: "sold" });
+    const rentedProperties = await Property.countDocuments({
+      status: "rented",
+    });
+    const inactiveProperties = await Property.countDocuments({
+      status: "inactive",
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        properties,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total,
+          pages: Math.ceil(total / limit),
+        },
+        stats: {
+          totalProperties,
+          activeProperties,
+          soldProperties,
+          rentedProperties,
+          inactiveProperties,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Get admin properties error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching properties",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+};
+
+// Get all properties
+// export const getProperties = async (req, res) => {
+//   try {
+//     const {
+//       page = 1,
+//       limit = 10,
+//       purpose,
+//       category,
+//       minPrice,
+//       maxPrice,
+//     } = req.query;
+
+//     const query = { status: "active" };
+
+//     if (purpose) query.purpose = purpose;
+//     if (category) query.category = category;
+//     if (minPrice || maxPrice) {
+//       query.price = {};
+//       if (minPrice) query.price.$gte = Number(minPrice);
+//       if (maxPrice) query.price.$lte = Number(maxPrice);
+//     }
+
+//     const skip = (page - 1) * limit;
+
+//     const properties = await Property.find(query)
+//       .populate("listedBy", "name email")
+//       .sort("-createdAt")
+//       .skip(skip)
+//       .limit(parseInt(limit));
+
+//     const total = await Property.countDocuments(query);
+
+//     res.status(200).json({
+//       success: true,
+//       count: properties.length,
+//       total,
+//       data: {
+//         properties,
+//       },
+//     });
+//   } catch (error) {
+//     console.error("Get properties error:", error);
+//     res.status(500).json({
+//       success: false,
+//       message: "Failed to fetch properties",
+//     });
+//   }
+// };
+// In your backend route handlers

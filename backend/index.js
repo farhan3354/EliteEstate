@@ -9,6 +9,10 @@ import propertyRoutes from "./routes/propertiesRoutes.js";
 import favoriteRoutes from "./routes/favoritesRoutes.js";
 import reviewRoutes from "./routes/reviews.js";
 import bookingRoutes from "./routes/bookings.js";
+import agentRoutes from "./routes/agentRoutes.js";
+import adminuserRoutes from "./routes/adminUserRoutes.js";
+import ownerRoutes from "./routes/ownerRoutes.js";
+import assignRoutes from "./routes/agentAssignmentRoutes.js";
 
 dotenv.config();
 
@@ -22,7 +26,11 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
 
 app.use("/api", authRoutes);
-app.use("/api/v1/users", userRoutes);
+app.use("/api", agentRoutes);
+app.use("/api", adminuserRoutes);
+app.use("/api/owners", ownerRoutes);
+app.use("/api/agents",assignRoutes)
+app.use("/api", userRoutes);
 app.use("/api/properties", propertyRoutes);
 app.use("/api/v1/favorites", favoriteRoutes);
 app.use("/api/v1/reviews", reviewRoutes);

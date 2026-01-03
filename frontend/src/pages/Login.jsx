@@ -408,8 +408,6 @@ export default function Login() {
         // FIX: Get role from userData
         const userRole = userData?.role || "tenant";
 
-        console.log("User role:", userRole);
-        console.log("LocalStorage after dispatch:");
         console.log("User:", localStorage.getItem("user"));
         console.log("Token:", localStorage.getItem("token"));
 
@@ -421,10 +419,10 @@ export default function Login() {
         }).then(() => {
           if (userRole === "landlord" || userRole === "admin") {
             navigate("/admin-dashboard");
-          } else if (userRole === "vendor") {
-            navigate("/vendor");
-          } else if (userRole === "customer") {
-            navigate("/customer");
+          } else if (userRole === "agent") {
+            navigate("/agent-dashboard");
+          } else if (userRole === "owner") {
+            navigate("/owner-dashboard");
           } else {
             navigate("/user-dashboard");
           }

@@ -10,7 +10,7 @@ import {
   FiChevronLeft,
   FiChevronRight,
 } from "react-icons/fi";
-import api from "../../utils/routeapi";
+import api from "../utils/routeapi";
 
 const AddProperty = () => {
   const navigate = useNavigate();

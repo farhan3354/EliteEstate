@@ -98,3 +98,25 @@ export const adminMiddleware = (req, res, next) => {
     res.status(403).json({ message: "Access denied: Admins only" });
   }
 };
+
+export const agent = (req, res, next) => {
+  if (req.user && (req.user.role === "agent" || req.user.role === "admin")) {
+    next();
+  } else {
+    return res.status(403).json({
+      success: false,
+      message: "Access denied. Agents only.",
+    });
+  }
+};
+
+export const owner = (req, res, next) => {
+  if (req.user && (req.user.role === "owner" || req.user.role === "admin")) {
+    next();
+  } else {
+    return res.status(403).json({
+      success: false,
+      message: "Access denied. Property owners only.",
+    });
+  }
+};

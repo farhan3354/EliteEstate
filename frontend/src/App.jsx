@@ -4,7 +4,6 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Properties from "./pages/Properties";
 import PropertyDetails from "./pages/PropertyDetails";
-import CreateProperty from "./pages/CreateProperty";
 import MyProperty from "./pages/MyProperties";
 import Booking from "./pages/Bookings";
 import Layout from "./component/common/Layout";
@@ -22,7 +21,7 @@ import UserLayout from "./component/common/user/UserLayout";
 import Dashboard from "./component/userDashboard/Dashboard";
 import Favorites from "./component/userDashboard/Favorites";
 import Profile from "./pages/Profile";
-import AddProperty from "./component/userDashboard/AddProperty";
+import AddProperty from "./component/AddProperty";
 import ArrayP from "./pages/ArrayP";
 import BecomeAgent from "./component/agentPage/BecomeAgent";
 import AgentProfile from "./component/agentPage/AgentProfile";
@@ -74,8 +73,8 @@ export default function App() {
         {/* <Route element={<ProtectRoute allowedRoles={["user"]} />}> */}
         <Route path="/user-dashboard" element={<UserLayout />}>
           <Route index element={<Dashboard />} />
-          <Route path="add-property" element={<AddProperty />} />
-          <Route path="my-properties" element={<MyProperty />} />
+          {/* <Route path="add-property" element={<AddProperty />} /> */}
+          {/* <Route path="my-properties" element={<MyProperty />} /> */}
           <Route path="favorites" element={<Favorites />} />
           <Route path="bookings" element={<Booking />} />
           <Route path="profile" element={<Profile />} />
@@ -84,9 +83,10 @@ export default function App() {
         {/* <Route element={<ProtectRoute allowedRoles={["owner"]} />}> */}
         <Route path="/owner-dashboard" element={<OwnerLayout />}>
           <Route index element={<OwnerDashboard />} />
-          <Route path="add-property" element={<CreateProperty />} />
+          <Route path="add-property" element={<AddProperty />} />
           <Route path="my-properties" element={<OWnerProperties />} />
-          <Route path="property/:id/edit" element={<EditProperty />} />
+          <Route path="edit-property/:id/" element={<EditProperty />} />
+          <Route path="property/:id" element={<PropertyDetails />} />
           <Route path="inquiries" element={<OwnerInquiries />} />
           <Route path="assign-agent" element={<AssignAgent />} />
           <Route path="assigned-agents" element={<OwnerAssignedAgents />} />
@@ -116,9 +116,6 @@ export default function App() {
           <Route path="reviews" element={<AdminReviews />} />
           <Route path="commissions" element={<AdminCommissions />} />
           <Route path="bookings" element={<AdminBookings />} />
-          {/* <Route path="reports" element={<AdminReports />} /> */}
-          {/* <Route path="featured" element={<FeaturedListings />} /> */}
-          {/* <Route path="settings" element={<AdminSettings />} /> */}
         </Route>
 
         <Route path="/servies" element={<SecureNetWebsite />} />
