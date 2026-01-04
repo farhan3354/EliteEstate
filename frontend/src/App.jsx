@@ -50,6 +50,7 @@ import NotFound from "./pages/NotFound";
 import EditProperty from "./pages/EditProperty";
 import OwnerInquiries from "./component/owner/OwnerInquiries";
 import OwnerAssignedAgents from "./component/owner/OwnerAssignedAgents";
+import AgentAvailability from "./component/agentPage/AgentAvailability";
 
 export default function App() {
   return (
@@ -94,7 +95,7 @@ export default function App() {
         </Route>
         {/* </Route> */}
         {/* <Route element={<ProtectRoute allowedRoles={["agent"]} />}> */}
-        <Route path="/agent" element={<AgentLayout />}>
+        <Route path="/agent-dashboard" element={<AgentLayout />}>
           <Route index element={<AgentDashboard />} />
           <Route path="listings" element={<AgentListings />} />
           <Route path="clients" element={<AgentClients />} />
@@ -102,6 +103,7 @@ export default function App() {
           <Route path="schedule" element={<AgentSchedule />} />
           <Route path="add-property" element={<AddProperty />} />{" "}
           <Route path="performance" element={<AgentPerformance />} />
+          <Route path="avala" element={<AgentAvailability />} />
           <Route path="profile" element={<OwnAgentProfile />} />
         </Route>
         {/* </Route> */}

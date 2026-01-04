@@ -17,8 +17,6 @@ import {
 const AssignAgent = () => {
   const navigate = useNavigate();
   const token = useSelector((state) => state.auth.token);
-  const user = useSelector((state) => state.auth.user);
-
   const [agents, setAgents] = useState([]);
   const [properties, setProperties] = useState([]);
   const [selectedProperty, setSelectedProperty] = useState("");
@@ -27,13 +25,10 @@ const AssignAgent = () => {
   const [loading, setLoading] = useState(true);
   const [agentLoading, setAgentLoading] = useState(false);
 
-  // Filters
   const [searchTerm, setSearchTerm] = useState("");
   const [specializationFilter, setSpecializationFilter] = useState("all");
   const [minExperience, setMinExperience] = useState("0");
   const [locationFilter, setLocationFilter] = useState("all");
-
-  // Agreement form
   const [agreement, setAgreement] = useState({
     commissionRate: "5",
     commissionType: "percentage",
@@ -51,8 +46,6 @@ const AssignAgent = () => {
     paymentTerms: "Upon successful transaction completion",
     minCommissionAmount: "",
   });
-
-  // Fetch available agents
   const fetchAgents = async () => {
     try {
       setLoading(true);
@@ -79,8 +72,6 @@ const AssignAgent = () => {
       setLoading(false);
     }
   };
-
-  // Fetch owner's properties
   const fetchOwnerProperties = async () => {
     try {
       const response = await api.get("/agents/owner/properties", {
@@ -96,37 +87,90 @@ const AssignAgent = () => {
     }
   };
 
-  // Fetch agent details
+  // const fetchAgentDetails = async (agentId) => {
+  //   try {
+  //     setAgentLoading(true);
+  //     console.log("🔍 Fetching agent details for ID:", agentId);
+
+  //     const response = await api.get(`/agents/${agentId}/availability`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     });
+
+  //     console.log("✅ Agent details response:", response.data);
+
+  //     if (response.data.success) {
+  //       // The backend returns { agent, currentWorkload, availability }
+  //       // So we need to combine the agent data with the additional fields
+  //       const agentData = {
+  //         ...response.data.data.agent.toObject(), // Convert mongoose document to plain object
+  //         currentWorkload: response.data.data.currentWorkload,
+  //         availability: response.data.data.availability,
+  //       };
+
+  //       setSelectedAgent(agentData);
+  //       setShowAgentDetails(true);
+  //     }
+  //   } catch (error) {
+  //     console.error("❌ Error fetching agent details:", error);
+  //     console.error("❌ Error response:", error.response?.data);
+  //     alert("Failed to load agent details.");
+  //   } finally {
+  //     setAgentLoading(false);
+  //   }
+  // };
   const fetchAgentDetails = async (agentId) => {
     try {
       setAgentLoading(true);
-      const response = await api.get(
-        `/agent-assignments/agent/${agentId}/availability`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      console.log("🔍 Fetching agent details for ID:", agentId);
+
+      const response = await api.get(`/agents/${agentId}/availability`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      console.log("✅ Agent details response:", response.data);
 
       if (response.data.success) {
-        setSelectedAgent(response.data.data);
+        // Check the actual structure of the response
+        console.log("🔍 Response data structure:", response.data.data);
+
+        // The agent data might be nested differently
+        let agentData = null;
+
+        if (response.data.data.agent) {
+          // If agent exists as a mongoose document, convert it
+          agentData = response.data.data.agent.toObject
+            ? response.data.data.agent.toObject()
+            : response.data.data.agent;
+        } else if (response.data.data) {
+          // If the entire response.data.data is the agent object
+          agentData = response.data.data;
+        }
+
+        // Add availability and workload if they exist separately
+        const agentWithDetails = {
+          ...agentData,
+          currentWorkload: response.data.data.currentWorkload || 0,
+          availability: response.data.data.availability || false,
+        };
+
+        setSelectedAgent(agentWithDetails);
         setShowAgentDetails(true);
       }
     } catch (error) {
-      console.error("Error fetching agent details:", error);
+      console.error("❌ Error fetching agent details:", error);
+      console.error("❌ Error response:", error.response?.data);
+      console.error("❌ Error status:", error.response?.status);
       alert("Failed to load agent details.");
     } finally {
       setAgentLoading(false);
     }
   };
-
-  // Handle agent selection
+  
   const handleAgentSelect = (agent) => {
     setSelectedAgent(agent);
     setShowAgentDetails(true);
     fetchAgentDetails(agent._id);
   };
-
-  // Handle assignment submission
   const handleAssignAgent = async () => {
     if (!selectedProperty || !selectedAgent) {
       alert("Please select both a property and an agent.");
@@ -149,7 +193,7 @@ const AssignAgent = () => {
     ) {
       try {
         const response = await api.post(
-          "/agent-assignments/assign",
+          "/agents/assign",
           {
             propertyId: selectedProperty,
             agentId: selectedAgent._id,
@@ -177,8 +221,6 @@ const AssignAgent = () => {
       fetchOwnerProperties();
     }
   }, [token]);
-
-  // Get specialization options from agents
   const specializationOptions = [
     ...new Set(agents.flatMap((agent) => agent.specialization || [])),
   ];
@@ -199,7 +241,6 @@ const AssignAgent = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4 max-w-6xl">
-        {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-6">
             <Link
@@ -239,11 +280,8 @@ const AssignAgent = () => {
             </div>
           </div>
         </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Property Selection & Agent List */}
           <div className="lg:col-span-2">
-            {/* Property Selection */}
             <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
               <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <FiBriefcase className="h-5 w-5 text-blue-600" />
@@ -318,8 +356,6 @@ const AssignAgent = () => {
                 </div>
               )}
             </div>
-
-            {/* Agent Search & Filters */}
             <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                 <div className="flex-1">
@@ -356,8 +392,6 @@ const AssignAgent = () => {
                   </button>
                 </div>
               </div>
-
-              {/* Agents List */}
               <div className="space-y-4">
                 {agents.length === 0 ? (
                   <div className="text-center py-8">
@@ -377,7 +411,6 @@ const AssignAgent = () => {
                       onClick={() => handleAgentSelect(agent)}
                     >
                       <div className="flex items-start gap-4">
-                        {/* Agent Avatar */}
                         <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
                           {agent.user?.profileImage ? (
                             <img
@@ -391,8 +424,6 @@ const AssignAgent = () => {
                             </span>
                           )}
                         </div>
-
-                        {/* Agent Info */}
                         <div className="flex-1">
                           <div className="flex items-start justify-between mb-2">
                             <div>
@@ -452,12 +483,9 @@ const AssignAgent = () => {
               </div>
             </div>
           </div>
-
-          {/* Right Column - Agent Details & Assignment Form */}
           <div>
             {showAgentDetails && selectedAgent && (
               <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-6">
-                {/* Agent Details */}
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-xl font-bold text-gray-900">
@@ -477,7 +505,6 @@ const AssignAgent = () => {
                     </div>
                   ) : (
                     <>
-                      {/* Agent Profile */}
                       <div className="flex items-center gap-4 mb-6">
                         <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
                           {selectedAgent.user?.profileImage ? (
@@ -512,8 +539,6 @@ const AssignAgent = () => {
                           </div>
                         </div>
                       </div>
-
-                      {/* Agent Stats */}
                       <div className="grid grid-cols-2 gap-4 mb-6">
                         <div className="bg-gray-50 p-4 rounded-xl">
                           <div className="text-2xl font-bold text-blue-600">
@@ -532,8 +557,6 @@ const AssignAgent = () => {
                           </div>
                         </div>
                       </div>
-
-                      {/* Specializations */}
                       <div className="mb-6">
                         <h4 className="font-medium text-gray-900 mb-2">
                           Specializations
@@ -549,8 +572,6 @@ const AssignAgent = () => {
                           ))}
                         </div>
                       </div>
-
-                      {/* Availability */}
                       <div className="mb-6">
                         <div className="flex items-center justify-between mb-2">
                           <h4 className="font-medium text-gray-900">
@@ -573,8 +594,6 @@ const AssignAgent = () => {
                           active assignments
                         </p>
                       </div>
-
-                      {/* Bio */}
                       {selectedAgent.bio && (
                         <div className="mb-6">
                           <h4 className="font-medium text-gray-900 mb-2">
@@ -585,14 +604,10 @@ const AssignAgent = () => {
                           </p>
                         </div>
                       )}
-
-                      {/* Assignment Form */}
                       <div className="border-t pt-6">
                         <h4 className="font-medium text-gray-900 mb-4">
                           Assignment Terms
                         </h4>
-
-                        {/* Commission Rate */}
                         <div className="mb-4">
                           <label className="block text-sm font-medium text-gray-700 mb-2">
                             Commission Rate (%)
@@ -615,8 +630,6 @@ const AssignAgent = () => {
                             <span className="text-sm text-gray-600">%</span>
                           </div>
                         </div>
-
-                        {/* Exclusive Agreement */}
                         <div className="mb-4">
                           <label className="flex items-center">
                             <input
@@ -636,8 +649,6 @@ const AssignAgent = () => {
                             </span>
                           </label>
                         </div>
-
-                        {/* Terms */}
                         <div className="mb-4">
                           <label className="block text-sm font-medium text-gray-700 mb-2">
                             Additional Terms
@@ -655,8 +666,6 @@ const AssignAgent = () => {
                             placeholder="Any specific terms or conditions..."
                           />
                         </div>
-
-                        {/* Submit Button */}
                         <button
                           onClick={handleAssignAgent}
                           disabled={
@@ -684,8 +693,6 @@ const AssignAgent = () => {
                 </div>
               </div>
             )}
-
-            {/* Information Panel (when no agent selected) */}
             {!showAgentDetails && (
               <div className="bg-white rounded-2xl shadow-lg p-6">
                 <h3 className="text-lg font-bold text-gray-900 mb-4">

@@ -119,6 +119,20 @@ const agentSchema = new mongoose.Schema(
     },
     verifiedAt: Date,
 
+    // assignedOwners: [
+    //   {
+    //     ownerId: {
+    //       type: mongoose.Schema.Types.ObjectId,
+    //       ref: "Owner",
+    //     },
+    //     propertyId: {
+    //       type: mongoose.Schema.Types.ObjectId,
+    //       ref: "Property",
+    //     },
+    //     commissionAgreement: Object,
+    //     assignedDate: Date,
+    //   },
+    // ],
     assignedOwners: [
       {
         ownerId: {
@@ -131,6 +145,12 @@ const agentSchema = new mongoose.Schema(
         },
         commissionAgreement: Object,
         assignedDate: Date,
+        status: {
+          type: String,
+          enum: ["pending", "accepted", "rejected", "completed"],
+          default: "pending",
+        },
+        completedAt: Date,
       },
     ],
 

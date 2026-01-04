@@ -434,6 +434,15 @@ export const registerAsAgent = async (req, res) => {
       companyName,
       yearsOfExperience,
       areasServed,
+      workingHours: {
+        monday: { start: "09:00", end: "18:00" },
+        tuesday: { start: "09:00", end: "18:00" },
+        wednesday: { start: "09:00", end: "18:00" },
+        thursday: { start: "09:00", end: "18:00" },
+        friday: { start: "09:00", end: "18:00" },
+        saturday: { start: "10:00", end: "16:00" },
+        sunday: { start: "10:00", end: "16:00" },
+      },
       verificationStatus: "pending",
     });
     user.role = "agent";
