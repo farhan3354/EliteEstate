@@ -51,6 +51,7 @@ import EditProperty from "./pages/EditProperty";
 import OwnerInquiries from "./component/owner/OwnerInquiries";
 import OwnerAssignedAgents from "./component/owner/OwnerAssignedAgents";
 import AgentAvailability from "./component/agentPage/AgentAvailability";
+import AgentAssignedProperties from "./component/agentPage/AgentAssignedProperties";
 
 export default function App() {
   return (
@@ -103,6 +104,7 @@ export default function App() {
           <Route path="schedule" element={<AgentSchedule />} />
           <Route path="add-property" element={<AddProperty />} />{" "}
           <Route path="performance" element={<AgentPerformance />} />
+          <Route path="owner-property" element={<AgentAssignedProperties />} />
           <Route path="avala" element={<AgentAvailability />} />
           <Route path="profile" element={<OwnAgentProfile />} />
         </Route>

@@ -86,38 +86,6 @@ const AssignAgent = () => {
       alert("Failed to load properties.");
     }
   };
-
-  // const fetchAgentDetails = async (agentId) => {
-  //   try {
-  //     setAgentLoading(true);
-  //     console.log("🔍 Fetching agent details for ID:", agentId);
-
-  //     const response = await api.get(`/agents/${agentId}/availability`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     });
-
-  //     console.log("✅ Agent details response:", response.data);
-
-  //     if (response.data.success) {
-  //       // The backend returns { agent, currentWorkload, availability }
-  //       // So we need to combine the agent data with the additional fields
-  //       const agentData = {
-  //         ...response.data.data.agent.toObject(), // Convert mongoose document to plain object
-  //         currentWorkload: response.data.data.currentWorkload,
-  //         availability: response.data.data.availability,
-  //       };
-
-  //       setSelectedAgent(agentData);
-  //       setShowAgentDetails(true);
-  //     }
-  //   } catch (error) {
-  //     console.error("❌ Error fetching agent details:", error);
-  //     console.error("❌ Error response:", error.response?.data);
-  //     alert("Failed to load agent details.");
-  //   } finally {
-  //     setAgentLoading(false);
-  //   }
-  // };
   const fetchAgentDetails = async (agentId) => {
     try {
       setAgentLoading(true);
@@ -130,23 +98,16 @@ const AssignAgent = () => {
       console.log("✅ Agent details response:", response.data);
 
       if (response.data.success) {
-        // Check the actual structure of the response
         console.log("🔍 Response data structure:", response.data.data);
-
-        // The agent data might be nested differently
         let agentData = null;
 
         if (response.data.data.agent) {
-          // If agent exists as a mongoose document, convert it
           agentData = response.data.data.agent.toObject
             ? response.data.data.agent.toObject()
             : response.data.data.agent;
         } else if (response.data.data) {
-          // If the entire response.data.data is the agent object
           agentData = response.data.data;
         }
-
-        // Add availability and workload if they exist separately
         const agentWithDetails = {
           ...agentData,
           currentWorkload: response.data.data.currentWorkload || 0,
@@ -165,7 +126,7 @@ const AssignAgent = () => {
       setAgentLoading(false);
     }
   };
-  
+
   const handleAgentSelect = (agent) => {
     setSelectedAgent(agent);
     setShowAgentDetails(true);
@@ -242,14 +203,15 @@ const AssignAgent = () => {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4 max-w-6xl">
         <div className="mb-8">
+          {" "}
+          <Link
+            to="/owner-dashboard"
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mt-2"
+          >
+            <FiChevronLeft className="h-5 w-5" />
+            <span>Back to Dashboard</span>
+          </Link>
           <div className="flex items-center gap-4 mb-6">
-            <Link
-              to="/owner-dashboard"
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
-            >
-              <FiChevronLeft className="h-5 w-5" />
-              <span>Back to Dashboard</span>
-            </Link>
             <div>
               <h1 className="text-3xl font-bold text-gray-900">
                 Assign Agent to Property
@@ -259,7 +221,6 @@ const AssignAgent = () => {
               </p>
             </div>
           </div>
-
           <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-xl border border-blue-200">
             <div className="flex items-start gap-3">
               <FiInfo className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />

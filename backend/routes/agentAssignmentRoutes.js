@@ -10,6 +10,9 @@ import {
   getVerifiedAgents,
   getAgentDetails,
   updateAgentAvailability,
+  getOwnerAssignedAgents,
+  getAgentAssignedProperties,
+  sendUpdateToOwner,
 } from "../controllers/agentController.js";
 
 const router = express.Router();
@@ -25,5 +28,10 @@ router.post("/assign", protect, createAgentAssignment);
 
 router.get("/agent/assignments", protect, getAgentAssignments);
 router.put("/assignment/:assignmentId/status", protect, updateAssignmentStatus);
+
+router.get("/owner/assignments", protect, getOwnerAssignedAgents);
+
+router.get("/agent/assignments", protect, getAgentAssignedProperties);
+router.post("/assignment/:assignmentId/update", protect, sendUpdateToOwner);
 
 export default router;

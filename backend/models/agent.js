@@ -147,41 +147,13 @@ const agentSchema = new mongoose.Schema(
         assignedDate: Date,
         status: {
           type: String,
-          enum: ["pending", "accepted", "rejected", "completed"],
+          enum: ["pending", "accepted", "rejected", "completed", "active"],
           default: "pending",
         },
         completedAt: Date,
       },
     ],
 
-    clients: [
-      {
-        clientId: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
-        },
-        type: {
-          type: String,
-          enum: ["buyer", "seller"],
-        },
-        since: Date,
-        status: {
-          type: String,
-          enum: ["active", "past", "potential", "pending"],
-          default: "active",
-        },
-      },
-    ],
-
-    monthlyStats: [
-      {
-        month: String,
-        inquiries: Number,
-        viewings: Number,
-        dealsClosed: Number,
-        commissionEarned: Number,
-      },
-    ],
   },
   {
     timestamps: true,

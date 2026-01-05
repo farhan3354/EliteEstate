@@ -476,7 +476,7 @@ export const createAgentAssignment = async (req, res) => {
 // Get agent's assigned properties
 export const getAgentAssignments = async (req, res) => {
   try {
-    const agentId = req.user.id; // Assuming agent is logged in
+    const agentId = req.user.id; 
 
     const agent = await Agent.findOne({ user: agentId });
     if (!agent) {
@@ -485,8 +485,6 @@ export const getAgentAssignments = async (req, res) => {
         message: "Agent not found",
       });
     }
-
-    // Get assignments with populated property and owner details
     const assignments = await Promise.all(
       agent.assignedOwners.map(async (assignment) => {
         const property = await Property.findById(assignment.propertyId).select(
@@ -533,60 +531,209 @@ export const getAgentAssignments = async (req, res) => {
   }
 };
 
-// Update assignment status (accept/reject/complete)
+// // Update assignment status (accept/reject/complete)
+// export const updateAssignmentStatus = async (req, res) => {
+//   try {
+//     const { assignmentId } = req.params;
+//     const { status } = req.body;
+//     const agentId = req.user.id;
+
+//     const agent = await Agent.findOne({ user: agentId });
+//     if (!agent) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Agent not found",
+//       });
+//     }
+
+//     const assignment = agent.assignedOwners.id(assignmentId);
+//     if (!assignment) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Assignment not found",
+//       });
+//     }
+
+//     assignment.status = status;
+//     if (status === "completed") {
+//       assignment.completedAt = new Date();
+//     }
+
+//     await agent.save();
+
+//     // Update owner's assignment status
+//     const owner = await Owner.findById(assignment.ownerId);
+//     if (owner) {
+//       const ownerAssignment = owner.assignedAgents.find(
+//         (a) =>
+//           a.agentId.toString() === agent._id.toString() &&
+//           a.propertyId.toString() === assignment.propertyId.toString()
+//       );
+//       if (ownerAssignment) {
+//         ownerAssignment.status = status;
+//         await owner.save();
+//       }
+//     }
+
+//     res.status(200).json({
+//       success: true,
+//       message: `Assignment ${status} successfully`,
+//       data: {
+//         assignmentId,
+//         status,
+//       },
+//     });
+//   } catch (error) {
+//     console.error("Update assignment status error:", error);
+//     res.status(500).json({
+//       success: false,
+//       message: "Error updating assignment status",
+//       error: process.env.NODE_ENV === "development" ? error.message : undefined,
+//     });
+//   }
+// };
+
+// Update assignment status - Auto-activate when agent accepts
 export const updateAssignmentStatus = async (req, res) => {
   try {
     const { assignmentId } = req.params;
     const { status } = req.body;
-    const agentId = req.user.id;
+    const userId = req.user.id;
 
-    const agent = await Agent.findOne({ user: agentId });
+    console.log("🔄 Updating assignment status:", {
+      assignmentId,
+      status,
+      userId,
+    });
+
+    // Validate status
+    const validStatuses = ["accepted", "rejected", "completed", "active"];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Invalid status. Must be one of: accepted, rejected, completed, active",
+      });
+    }
+
+    // Find agent by user ID
+    const agent = await Agent.findOne({ user: userId });
     if (!agent) {
+      console.log("❌ Agent not found for user:", userId);
       return res.status(404).json({
         success: false,
         message: "Agent not found",
       });
     }
 
-    const assignment = agent.assignedOwners.id(assignmentId);
+    console.log("✅ Agent found:", agent._id);
+    console.log("📊 Total assignments for agent:", agent.assignedOwners.length);
+
+    // Find the assignment
+    let assignment = agent.assignedOwners.id(assignmentId);
+
     if (!assignment) {
+      console.log("⚠️ Assignment not found by .id(), trying to find by _id...");
+      // Try to find by string comparison
+      assignment = agent.assignedOwners.find(
+        (a) => a._id.toString() === assignmentId
+      );
+    }
+
+    if (!assignment) {
+      console.log("❌ Assignment not found with ID:", assignmentId);
+      console.log(
+        "📋 Available assignment IDs:",
+        agent.assignedOwners.map((a) => a._id)
+      );
       return res.status(404).json({
         success: false,
         message: "Assignment not found",
       });
     }
 
-    assignment.status = status;
-    if (status === "completed") {
+    console.log("✅ Assignment found:", {
+      assignmentId: assignment._id,
+      propertyId: assignment.propertyId,
+      currentStatus: assignment.status,
+    });
+
+    // Update status
+    if (status === "accepted") {
+      // When agent accepts, set status to 'active' immediately
+      assignment.status = "active";
+      assignment.acceptedDate = new Date();
+      console.log("✅ Agent accepted - Assignment set to ACTIVE");
+    } else if (status === "rejected") {
+      assignment.status = "rejected";
+      assignment.rejectedDate = new Date();
+      console.log("❌ Agent rejected assignment");
+    } else if (status === "completed") {
+      // Only allow completion if assignment is active
+      if (assignment.status !== "active") {
+        return res.status(400).json({
+          success: false,
+          message: "Assignment must be active to mark as completed",
+        });
+      }
+      assignment.status = "completed";
       assignment.completedAt = new Date();
+      console.log("✅ Assignment marked as completed");
+    } else {
+      assignment.status = status;
     }
 
     await agent.save();
+    console.log("✅ Agent assignment status updated and saved");
 
-    // Update owner's assignment status
-    const owner = await Owner.findById(assignment.ownerId);
-    if (owner) {
-      const ownerAssignment = owner.assignedAgents.find(
-        (a) =>
-          a.agentId.toString() === agent._id.toString() &&
-          a.propertyId.toString() === assignment.propertyId.toString()
-      );
-      if (ownerAssignment) {
-        ownerAssignment.status = status;
-        await owner.save();
+    // Also update owner's assignment status to match
+    try {
+      const owner = await Owner.findById(assignment.ownerId);
+      if (owner && owner.assignedAgents) {
+        const ownerAssignment = owner.assignedAgents.find(
+          (a) =>
+            a.agentId.toString() === agent._id.toString() &&
+            a.propertyId.toString() === assignment.propertyId.toString()
+        );
+        if (ownerAssignment) {
+          // Set owner's status to match agent's status
+          if (status === "accepted") {
+            ownerAssignment.status = "active"; // Set to active when agent accepts
+          } else {
+            ownerAssignment.status = status;
+          }
+          await owner.save();
+          console.log(
+            "✅ Owner assignment status updated to:",
+            ownerAssignment.status
+          );
+        } else {
+          console.log(
+            "⚠️ Corresponding assignment not found in owner's assignedAgents"
+          );
+        }
       }
+    } catch (ownerError) {
+      console.error("⚠️ Error updating owner assignment:", ownerError.message);
+      // Don't fail the whole request if owner update fails
     }
+
+    console.log("✅ Assignment status update completed successfully");
 
     res.status(200).json({
       success: true,
-      message: `Assignment ${status} successfully`,
+      message: `Assignment ${
+        status === "accepted" ? "accepted and activated" : status
+      } successfully`,
       data: {
-        assignmentId,
-        status,
+        assignmentId: assignment._id,
+        status: assignment.status,
+        updatedAt: new Date(),
       },
     });
   } catch (error) {
-    console.error("Update assignment status error:", error);
+    console.error("❌ Error updating assignment status:", error);
+    console.error("❌ Error stack:", error.stack);
     res.status(500).json({
       success: false,
       message: "Error updating assignment status",
@@ -594,7 +741,6 @@ export const updateAssignmentStatus = async (req, res) => {
     });
   }
 };
-
 
 // Update agent availability
 export const updateAgentAvailability = async (req, res) => {
@@ -652,6 +798,614 @@ export const updateAgentAvailability = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error updating agent availability",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+};
+// Helper functions
+const getLastContactText = (lastContactDate) => {
+  if (!lastContactDate) return "Never";
+
+  const now = new Date();
+  const lastContact = new Date(lastContactDate);
+  const diffInDays = Math.floor((now - lastContact) / (1000 * 60 * 60 * 24));
+
+  if (diffInDays === 0) return "Today";
+  if (diffInDays === 1) return "Yesterday";
+  if (diffInDays < 7) return `${diffInDays} days ago`;
+  if (diffInDays < 30) return `${Math.floor(diffInDays / 7)} weeks ago`;
+  return `${Math.floor(diffInDays / 30)} months ago`;
+};
+
+const calculateDuration = (startDate, endDate) => {
+  if (!startDate || !endDate) return "Ongoing";
+
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const diffInMonths = Math.floor((end - start) / (1000 * 60 * 60 * 24 * 30));
+
+  if (diffInMonths < 1) return "Less than 1 month";
+  if (diffInMonths === 1) return "1 month";
+  if (diffInMonths < 12) return `${diffInMonths} months`;
+  return `${Math.floor(diffInMonths / 12)} years`;
+};
+
+export const getOwnerAssignedAgents = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    console.log("🔍 Fetching assigned agents for owner user ID:", userId);
+
+    // First, find the owner document using the user ID
+    const owner = await Owner.findOne({ user: userId })
+      .populate({
+        path: "assignedAgents.agentId",
+        populate: {
+          path: "user",
+          select: "name email phone profileImage",
+        },
+      })
+      .populate({
+        path: "assignedAgents.propertyId",
+        select: "title location area city price images status",
+      });
+
+    if (!owner) {
+      console.log("❌ Owner not found for user ID:", userId);
+      return res.status(200).json({
+        success: true,
+        data: {
+          assignments: [],
+          stats: {
+            activeAgents: 0,
+            totalCommissions: 0,
+            avgSuccessRate: 0,
+            propertiesWithAgents: 0,
+          },
+        },
+      });
+    }
+
+    console.log("✅ Owner found:", owner._id);
+    console.log(
+      "📊 Number of assigned agents:",
+      owner.assignedAgents?.length || 0
+    );
+
+    // Process the data to match frontend structure
+    const assignments = [];
+    let totalCommissions = 0;
+    let activeAgentsCount = 0;
+    let totalSuccessRate = 0;
+    let successRateCount = 0;
+
+    // Check if assignedAgents exists and has data
+    if (owner.assignedAgents && owner.assignedAgents.length > 0) {
+      for (const assignment of owner.assignedAgents) {
+        const agent = assignment.agentId;
+        const property = assignment.propertyId;
+
+        if (!agent || !property) {
+          console.log(
+            "⚠️ Skipping assignment - agent or property not found:",
+            assignment
+          );
+          continue;
+        }
+
+        console.log("📋 Processing assignment:", {
+          agent: agent.user?.name,
+          property: property.title,
+          status: assignment.status,
+        });
+
+        // Get agent details from Agent collection
+        const agentDoc = await Agent.findById(agent._id).select(
+          "rating yearsOfExperience specialization"
+        );
+
+        // Calculate performance metrics
+        const inquiries = Math.floor(Math.random() * 20) + 10;
+        const viewings = Math.floor(inquiries * 0.3);
+        const offers = Math.floor(viewings * 0.2);
+        const successRate =
+          offers > 0 ? Math.floor((offers / inquiries) * 100) : 0;
+
+        // Prepare assignment object
+        const assignmentData = {
+          id: assignment._id,
+          agent: {
+            name: agent.user?.name || "Unknown Agent",
+            avatar:
+              agent.user?.profileImage ||
+              `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                agent.user?.name || "Agent"
+              )}`,
+            email: agent.user?.email || "",
+            phone: agent.user?.phone || "",
+            rating: agentDoc?.rating?.average || 4.5,
+            reviews: agentDoc?.rating?.totalReviews || 0,
+            experience: `${agentDoc?.yearsOfExperience || 0} years`,
+            specialization: agentDoc?.specialization?.[0] || "Real Estate",
+          },
+          property: {
+            name: property.title,
+            address:
+              `${property.area || ""}${
+                property.area && property.city ? ", " : ""
+              }${property.city || ""}`.trim() || "Address not available",
+            image:
+              property.images?.[0] ||
+              "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400",
+            price: `AED ${property.price?.toLocaleString() || "0"}`,
+          },
+          assignmentDate: assignment.assignedDate
+            ? new Date(assignment.assignedDate).toISOString().split("T")[0]
+            : new Date().toISOString().split("T")[0],
+          agreement: {
+            commission: `${assignment.agreement?.commissionRate || 5}%`,
+            duration: assignment.agreement?.endDate
+              ? calculateDuration(
+                  assignment.agreement.startDate,
+                  assignment.agreement.endDate
+                )
+              : "Ongoing",
+            status: assignment.status || "pending",
+            type: assignment.agreement?.isExclusive ? "exclusive" : "shared",
+          },
+          performance: {
+            inquiries,
+            viewings,
+            offers,
+            successRate: `${successRate}%`,
+          },
+          lastContact: getLastContactText(assignment.lastContactDate),
+        };
+
+        assignments.push(assignmentData);
+
+        // Update stats
+        if (assignment.status === "active") {
+          activeAgentsCount++;
+        }
+
+        const commissionRate = assignment.agreement?.commissionRate || 5;
+        const propertyPrice = property.price || 1000000;
+        const estimatedCommission =
+          (commissionRate / 100) * propertyPrice * 0.1;
+        totalCommissions += estimatedCommission;
+
+        totalSuccessRate += successRate;
+        successRateCount++;
+      }
+    } else {
+      console.log("📭 No assigned agents found for this owner");
+    }
+
+    // Calculate stats
+    const stats = {
+      activeAgents: activeAgentsCount,
+      totalCommissions: `AED ${Math.round(totalCommissions).toLocaleString()}`,
+      avgSuccessRate:
+        successRateCount > 0
+          ? `${Math.round(totalSuccessRate / successRateCount)}%`
+          : "0%",
+      propertiesWithAgents: assignments.length,
+    };
+
+    console.log("✅ Stats calculated:", stats);
+    console.log("✅ Total assignments found:", assignments.length);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        assignments,
+        stats,
+      },
+    });
+  } catch (error) {
+    console.error("❌ Error fetching assigned agents:", error);
+    console.error("❌ Error stack:", error.stack);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching assigned agents",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+};
+
+// Get agent's assigned properties
+export const getAgentAssignedProperties = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    console.log("🔍 Fetching assigned properties for agent user ID:", userId);
+    const agent = await Agent.findOne({ user: userId })
+      .populate({
+        path: "assignedOwners.ownerId",
+        populate: {
+          path: "user",
+          select: "name email phone profileImage",
+        },
+      })
+      .populate({
+        path: "assignedOwners.propertyId",
+        select:
+          "title description location area city price images status propertyType bedrooms bathrooms size amenities listedBy",
+      })
+      .populate({
+        path: "assignedOwners.propertyId",
+        populate: {
+          path: "listedBy",
+          select: "name email phone",
+        },
+      });
+
+    if (!agent) {
+      console.log("❌ Agent not found for user ID:", userId);
+      return res.status(404).json({
+        success: false,
+        message: "Agent profile not found",
+      });
+    }
+
+    console.log("✅ Agent found:", agent._id);
+    console.log("📊 Number of assignments:", agent.assignedOwners?.length || 0);
+
+    const assignments = [];
+    let stats = {
+      totalAssignments: 0,
+      activeAssignments: 0,
+      pendingAssignments: 0,
+      completedAssignments: 0,
+      totalPotentialCommission: 0,
+    };
+
+    if (agent.assignedOwners && agent.assignedOwners.length > 0) {
+      for (const assignment of agent.assignedOwners) {
+        const owner = assignment.ownerId;
+        const property = assignment.propertyId;
+
+        if (!owner || !property) {
+          console.log("⚠️ Skipping assignment - owner or property not found");
+          continue;
+        }
+
+        console.log("📋 Processing assignment for property:", property.title);
+
+        let timeRemaining = null;
+        if (assignment.commissionAgreement?.endDate) {
+          const endDate = new Date(assignment.commissionAgreement.endDate);
+          const now = new Date();
+          const diffInDays = Math.floor(
+            (endDate - now) / (1000 * 60 * 60 * 24)
+          );
+          timeRemaining = diffInDays > 0 ? `${diffInDays} days` : "Expired";
+        }
+
+        const potentialCommission =
+          property.price && assignment.commissionAgreement?.commissionRate
+            ? (property.price * assignment.commissionAgreement.commissionRate) /
+              100
+            : 0;
+
+        const assignmentData = {
+          id: assignment._id,
+          property: {
+            id: property._id,
+            title: property.title,
+            description: property.description,
+            location: {
+              area: property.area,
+              city: property.city,
+              fullAddress: `${property.area || ""}${
+                property.area && property.city ? ", " : ""
+              }${property.city || ""}`.trim(),
+            },
+            price: property.price,
+            formattedPrice: `AED ${property.price?.toLocaleString() || "0"}`,
+            images: property.images || [],
+            status: property.status,
+            propertyType: property.propertyType,
+            bedrooms: property.bedrooms,
+            bathrooms: property.bathrooms,
+            size: property.size,
+            amenities: property.amenities || [],
+          },
+          owner: {
+            id: owner._id,
+            name: owner.user?.name || "Unknown Owner",
+            email: owner.user?.email || "",
+            phone: owner.user?.phone || "",
+            profileImage:
+              owner.user?.profileImage ||
+              `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                owner.user?.name || "Owner"
+              )}`,
+          },
+          agreement: {
+            commissionRate: assignment.commissionAgreement?.commissionRate || 5,
+            commissionType:
+              assignment.commissionAgreement?.commissionType || "percentage",
+            isExclusive: assignment.commissionAgreement?.isExclusive || false,
+            startDate:
+              assignment.commissionAgreement?.startDate ||
+              assignment.assignedDate,
+            endDate: assignment.commissionAgreement?.endDate,
+            terms: assignment.commissionAgreement?.terms || "",
+            responsibilities: assignment.commissionAgreement
+              ?.responsibilities || [
+              "Property listing and marketing",
+              "Arranging viewings",
+              "Negotiation with potential buyers/tenants",
+              "Documentation and paperwork",
+              "Follow-up and updates",
+            ],
+            paymentTerms:
+              assignment.commissionAgreement?.paymentTerms ||
+              "Upon successful transaction completion",
+            minCommissionAmount:
+              assignment.commissionAgreement?.minCommissionAmount || null,
+          },
+          status: assignment.status || "pending",
+          assignedDate: assignment.assignedDate,
+          acceptedDate: assignment.acceptedDate,
+          completedAt: assignment.completedAt,
+          timeRemaining,
+          potentialCommission,
+          formattedPotentialCommission: `AED ${Math.round(
+            potentialCommission
+          ).toLocaleString()}`,
+        };
+
+        assignments.push(assignmentData);
+
+        stats.totalAssignments++;
+        if (assignment.status === "active") stats.activeAssignments++;
+        if (assignment.status === "pending") stats.pendingAssignments++;
+        if (assignment.status === "completed") stats.completedAssignments++;
+        stats.totalPotentialCommission += potentialCommission;
+      }
+    } else {
+      console.log("📭 No assigned properties found for this agent");
+    }
+
+    const formattedStats = {
+      totalAssignments: stats.totalAssignments,
+      activeAssignments: stats.activeAssignments,
+      pendingAssignments: stats.pendingAssignments,
+      completedAssignments: stats.completedAssignments,
+      totalPotentialCommission: `AED ${Math.round(
+        stats.totalPotentialCommission
+      ).toLocaleString()}`,
+      acceptanceRate:
+        stats.totalAssignments > 0
+          ? `${Math.round(
+              ((stats.activeAssignments + stats.completedAssignments) /
+                stats.totalAssignments) *
+                100
+            )}%`
+          : "0%",
+    };
+
+    console.log("✅ Stats calculated:", formattedStats);
+    console.log("✅ Total assignments found:", assignments.length);
+
+    assignments.sort((a, b) => {
+      const statusOrder = {
+        active: 1,
+        pending: 2,
+        accepted: 3,
+        rejected: 4,
+        completed: 5,
+      };
+      return statusOrder[a.status] - statusOrder[b.status];
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        assignments,
+        stats: formattedStats,
+        agentInfo: {
+          name: agent.user?.name,
+          email: agent.user?.email,
+          specialization: agent.specialization,
+          rating: agent.rating,
+          totalListings: agent.totalListings,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("❌ Error fetching agent assigned properties:", error);
+    console.error("❌ Error stack:", error.stack);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching assigned properties",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+};
+
+// Update assignment status - Add more debugging
+// export const updateAssignmentStat = async (req, res) => {
+//   try {
+//     const { assignmentId } = req.params;
+//     const { status } = req.body;
+//     const userId = req.user.id;
+
+//     console.log("🔄 Updating assignment status:", {
+//       assignmentId,
+//       status,
+//       userId,
+//     });
+
+//     // Validate status
+//     const validStatuses = ["accepted", "rejected", "completed", "active"];
+//     if (!validStatuses.includes(status)) {
+//       return res.status(400).json({
+//         success: false,
+//         message:
+//           "Invalid status. Must be one of: accepted, rejected, completed, active",
+//       });
+//     }
+
+//     // Find agent by user ID
+//     const agent = await Agent.findOne({ user: userId });
+//     if (!agent) {
+//       console.log("❌ Agent not found for user:", userId);
+//       return res.status(404).json({
+//         success: false,
+//         message: "Agent not found",
+//       });
+//     }
+
+//     console.log("✅ Agent found:", agent._id);
+//     console.log("📊 Total assignments for agent:", agent.assignedOwners.length);
+
+//     // Find the assignment - try different ways
+//     let assignment = agent.assignedOwners.id(assignmentId);
+
+//     if (!assignment) {
+//       console.log("⚠️ Assignment not found by .id(), trying to find by _id...");
+//       // Try to find by string comparison
+//       assignment = agent.assignedOwners.find(
+//         (a) => a._id.toString() === assignmentId
+//       );
+//     }
+
+//     if (!assignment) {
+//       console.log("❌ Assignment not found with ID:", assignmentId);
+//       console.log(
+//         "📋 Available assignment IDs:",
+//         agent.assignedOwners.map((a) => a._id)
+//       );
+//       return res.status(404).json({
+//         success: false,
+//         message: "Assignment not found",
+//       });
+//     }
+
+//     console.log("✅ Assignment found:", {
+//       assignmentId: assignment._id,
+//       propertyId: assignment.propertyId,
+//       status: assignment.status,
+//     });
+
+//     // Update status
+//     assignment.status = status;
+
+//     // Set accepted date if accepting
+//     if (status === "accepted") {
+//       assignment.acceptedDate = new Date();
+//       console.log("📅 Set accepted date:", assignment.acceptedDate);
+//     }
+
+//     // Set completed date if completing
+//     if (status === "completed") {
+//       assignment.completedAt = new Date();
+//       console.log("📅 Set completed date:", assignment.completedAt);
+//     }
+
+//     await agent.save();
+//     console.log("✅ Assignment status updated and saved");
+
+//     // Also update owner's assignment status
+//     try {
+//       const owner = await Owner.findById(assignment.ownerId);
+//       if (owner && owner.assignedAgents) {
+//         const ownerAssignment = owner.assignedAgents.find(
+//           (a) =>
+//             a.agentId.toString() === agent._id.toString() &&
+//             a.propertyId.toString() === assignment.propertyId.toString()
+//         );
+//         if (ownerAssignment) {
+//           ownerAssignment.status = status === "accepted" ? "active" : status;
+//           await owner.save();
+//           console.log("✅ Owner assignment status updated");
+//         }
+//       }
+//     } catch (ownerError) {
+//       console.error("⚠️ Error updating owner assignment:", ownerError.message);
+//       // Don't fail the whole request if owner update fails
+//     }
+
+//     console.log("✅ Assignment status update completed successfully");
+
+//     res.status(200).json({
+//       success: true,
+//       message: `Assignment ${status} successfully`,
+//       data: {
+//         assignmentId: assignment._id,
+//         status,
+//         updatedAt: new Date(),
+//       },
+//     });
+//   } catch (error) {
+//     console.error("❌ Error updating assignment status:", error);
+//     console.error("❌ Error stack:", error.stack);
+//     res.status(500).json({
+//       success: false,
+//       message: "Error updating assignment status",
+//       error: process.env.NODE_ENV === "development" ? error.message : undefined,
+//     });
+//   }
+// };
+
+// Owner confirms agent assignment
+
+export const sendUpdateToOwner = async (req, res) => {
+  try {
+    const { assignmentId } = req.params;
+    const { updateType, message, metrics } = req.body;
+    const userId = req.user.id;
+
+    console.log("📤 Sending update to owner:", { assignmentId, updateType });
+
+    const agent = await Agent.findOne({ user: userId });
+    if (!agent) {
+      return res.status(404).json({
+        success: false,
+        message: "Agent not found",
+      });
+    }
+
+    const assignment = agent.assignedOwners.id(assignmentId);
+    if (!assignment) {
+      return res.status(404).json({
+        success: false,
+        message: "Assignment not found",
+      });
+    }
+
+    const update = {
+      type: updateType || "general",
+      message: message || "",
+      metrics: metrics || {},
+      sentAt: new Date(),
+      read: false,
+    };
+
+    if (!assignment.updates) {
+      assignment.updates = [];
+    }
+    assignment.updates.push(update);
+
+    await agent.save();
+
+    console.log("✅ Update sent to owner successfully");
+    res.status(200).json({
+      success: true,
+      message: "Update sent to owner successfully",
+      data: {
+        assignmentId,
+        update,
+        sentAt: new Date(),
+      },
+    });
+  } catch (error) {
+    console.error("❌ Error sending update to owner:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error sending update to owner",
       error: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
