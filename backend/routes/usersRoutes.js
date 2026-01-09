@@ -11,10 +11,8 @@ import { uploadUserPhoto } from "../middleware/upload.js";
 
 const router = express.Router();
 
-router.use(protect);
-
-router.get("/profile", getUserProfile);
-router.patch("/profile", uploadUserPhoto, updateProfile);
+router.get("/profile", protect, getUserProfile);
+router.patch("/profile", protect, uploadUserPhoto, updateProfile);
 router.get("/stats", getUserStats);
 router.post("/become-agent", becomeAgent);
 

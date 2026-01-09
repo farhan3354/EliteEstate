@@ -13,6 +13,7 @@ import agentRoutes from "./routes/agentRoutes.js";
 import adminuserRoutes from "./routes/adminUserRoutes.js";
 import ownerRoutes from "./routes/ownerRoutes.js";
 import assignRoutes from "./routes/agentAssignmentRoutes.js";
+import serviceRoutes from "./routes/serviceRoute.js";
 
 dotenv.config();
 
@@ -29,12 +30,14 @@ app.use("/api", authRoutes);
 app.use("/api", agentRoutes);
 app.use("/api", adminuserRoutes);
 app.use("/api/owners", ownerRoutes);
-app.use("/api/agents",assignRoutes)
+app.use("/api/agents", assignRoutes);
 app.use("/api", userRoutes);
 app.use("/api/properties", propertyRoutes);
 app.use("/api/v1/favorites", favoriteRoutes);
 app.use("/api/v1/reviews", reviewRoutes);
 app.use("/api/v1/bookings", bookingRoutes);
+
+app.use("/api", serviceRoutes);
 
 app.get("/", (req, res) => {
   res.json({

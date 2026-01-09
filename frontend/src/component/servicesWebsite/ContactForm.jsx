@@ -404,7 +404,6 @@ const ContactForm = () => {
 
   const API_URL = "http://localhost:8000/api";
 
-  // Comprehensive name validation function
   const validateName = (name) => {
     const nameStr = name.trim();
 
