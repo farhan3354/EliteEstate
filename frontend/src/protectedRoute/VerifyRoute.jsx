@@ -17,7 +17,7 @@ const ProtectRoute = ({ allowedRoles }) => {
     const verifyUser = async () => {
       try {
         console.log("Verifying token:", token);
-        const res = await api.get("/verify", {
+        const res = await api.get("/auth/verify", {
           headers: { Authorization: `Bearer ${token}` },
         });
 

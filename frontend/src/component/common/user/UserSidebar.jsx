@@ -40,7 +40,7 @@ const Sidebar = () => {
       badge: "12",
     },
     {
-      title: "Bookings",
+      title: "Viewings",
       icon: FiCalendar,
       path: "/user-dashboard/bookings",
       badge: "3",
@@ -124,7 +124,7 @@ const Sidebar = () => {
                   <span className="font-semibold text-gray-800">1.2K</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Bookings</span>
+                  <span className="text-gray-600">Viewings</span>
                   <span className="font-semibold text-gray-800">18</span>
                 </div>
               </div>
@@ -148,7 +148,7 @@ const Sidebar = () => {
                 <div className="text-sm font-bold text-gray-800">18</div>
                 <FiBookmark className="w-4 h-4 text-gray-600 mx-auto mt-1" />
                 <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap">
-                  Bookings
+                  Viewings
                 </div>
               </div>
             </div>

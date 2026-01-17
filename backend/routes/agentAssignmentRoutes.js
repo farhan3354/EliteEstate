@@ -13,25 +13,31 @@ import {
   getOwnerAssignedAgents,
   getAgentAssignedProperties,
   sendUpdateToOwner,
+  terminateAssignment,
+  extendAssignment,
 } from "../controllers/agentController.js";
 
 const router = express.Router();
 
-router.get("/verified", protect, getVerifiedAgents);
-router.get("/:id", protect, getAgentDetails);
-router.post("/:agentId/assign", protect, assignAgentToProperty);
-router.put("/availability", protect, updateAgentAvailability);
+router.use(protect);
 
-router.get("/owner/properties", protect, getOwnerPropertiesForAssignment);
-router.get("/:agentId/availability", protect, getAgentAvailability);
-router.post("/assign", protect, createAgentAssignment);
+router.get("/verified", getVerifiedAgents);
+router.get("/:id", getAgentDetails);
+router.post("/:agentId/assign", assignAgentToProperty);
+router.put("/availability", updateAgentAvailability);
 
-router.get("/agent/assignments", protect, getAgentAssignments);
-router.put("/assignment/:assignmentId/status", protect, updateAssignmentStatus);
+router.get("/owner/properties", getOwnerPropertiesForAssignment);
+router.get("/:agentId/availability", getAgentAvailability);
+router.post("/assign", createAgentAssignment);
 
-router.get("/owner/assignments", protect, getOwnerAssignedAgents);
+router.get("/agent/assignments", getAgentAssignments);
+router.put("/assignment/:assignmentId/status", updateAssignmentStatus);
 
-router.get("/agent/assignments", protect, getAgentAssignedProperties);
-router.post("/assignment/:assignmentId/update", protect, sendUpdateToOwner);
+router.get("/owner/assignments", getOwnerAssignedAgents);
+
+router.get("/agent/assigned-properties", getAgentAssignedProperties);
+router.post("/assignment/:assignmentId/update", sendUpdateToOwner);
+router.delete("/assignments/:id", terminateAssignment);
+router.put("/assignments/:id/extend", extendAssignment);
 
 export default router;

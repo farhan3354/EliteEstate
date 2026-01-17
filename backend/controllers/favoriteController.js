@@ -127,19 +127,50 @@ export const removeFromFavorites = async (req, res) => {
 };
 
 // Check if property is favorite
+// export const checkIsFavorite = async (req, res) => {
+//   try {
+//     const { propertyId } = req.params;
+
+//     const favorite = await Favorite.findOne({
+//       user: req.user.id,
+//       property: propertyId,
+//     });
+
+//     res.status(200).json({
+//       success: true,
+//       data: {
+//         isFavorite: !!favorite,
+//       },
+//     });
+//   } catch (error) {
+//     res.status(500).json({
+//       success: false,
+//       message: "Error checking favorite status",
+//       error: error.message,
+//     });
+//   }
+// };
+
+// Check if property is favorite
 export const checkIsFavorite = async (req, res) => {
   try {
     const { propertyId } = req.params;
 
-    const favorite = await Favorite.findOne({
-      user: req.user.id,
-      property: propertyId,
-    });
+    let isFavorite = false;
+    
+    // Only check if user is authenticated
+    if (req.user) {
+      const favorite = await Favorite.findOne({
+        user: req.user.id,
+        property: propertyId,
+      });
+      isFavorite = !!favorite;
+    }
 
     res.status(200).json({
       success: true,
       data: {
-        isFavorite: !!favorite,
+        isFavorite,
       },
     });
   } catch (error) {

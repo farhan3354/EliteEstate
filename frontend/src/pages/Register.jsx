@@ -56,7 +56,7 @@ export default function Register() {
     }
 
     try {
-      const response = await api.post("/register", {
+      const response = await api.post("/auth/register", {
         ...data,
         userType: userType,
       });

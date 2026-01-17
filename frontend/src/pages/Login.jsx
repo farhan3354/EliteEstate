@@ -382,7 +382,7 @@ export default function Login() {
   const onSubmit = async (data) => {
     try {
       console.log("Sending login request:", data);
-      const response = await api.post("/login", data);
+      const response = await api.post("/auth/login", data);
       
       console.log("Full API Response:", response.data);
 

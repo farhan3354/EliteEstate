@@ -6,14 +6,16 @@ import {
   deleteRegularUser,
   createRegularUser,
 } from "../controllers/adminUserController.js";
-import { protect } from "../middleware/auth.js";
+import { protect, adminMiddleware } from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.get("/admin/regular-users", protect, getAllRegularUsers);
-router.get("/admin/regular-users/:id", protect, getRegularUserById);
-router.post("/admin/regular-users", protect, createRegularUser);
-router.put("/admin/regular-users/:id/status", protect, updateRegularUserStatus);
-router.delete("/admin/regular-users/:id", protect, deleteRegularUser);
+router.use(protect, adminMiddleware);
+
+router.get("/regular-users", getAllRegularUsers);
+router.get("/regular-users/:id", getRegularUserById);
+router.post("/regular-users", createRegularUser);
+router.put("/regular-users/:id/status", updateRegularUserStatus);
+router.delete("/regular-users/:id", deleteRegularUser);
 
 export default router;

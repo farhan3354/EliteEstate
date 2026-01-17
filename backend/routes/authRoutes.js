@@ -16,6 +16,19 @@ router.post("/register", register);
 router.post("/login", login);
 
 router.get("/me", protect, getMe);
+router.get("/verify", protect, (req, res) => {
+  res.json({
+    success: true,
+    message: "Token valid",
+    data: {
+      user: {
+        id: req.user._id,
+        name: req.user.name,
+        role: req.user.role,
+      },
+    },
+  });
+});
 router.get("/check-role-status", protect, checkRoleStatus);
 router.post("/become-owner", protect, registerAsOwner);
 router.post("/become-agent", protect, registerAsAgent);

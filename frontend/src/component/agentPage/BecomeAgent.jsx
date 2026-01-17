@@ -88,7 +88,7 @@ const BecomeAgent = () => {
         areasServed: data.areasServed ? [data.areasServed] : [],
       };
 
-      const response = await api.post("/become-agent", formData, {
+      const response = await api.post("/auth/become-agent", formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",

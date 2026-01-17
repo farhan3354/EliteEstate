@@ -1,9 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
+import { inquiryAPI } from "../../services/api";
 import {
-  FiSearch,
-  FiFilter,
-  FiMail,
-  FiPhone,
   FiCalendar,
   FiMessageSquare,
   FiCheck,

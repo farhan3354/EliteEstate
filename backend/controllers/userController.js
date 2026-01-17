@@ -1,6 +1,7 @@
 import User from "../models/authModel.js";
 import Profile from "../models/profile.js";
 import Property from "../models/property.js";
+import Agent from "../models/agent.js";
 import cloudinary from "../config/cloudinary.js";
 
 export const getUserProfile = async (req, res, next) => {
@@ -148,6 +149,20 @@ export const becomeAgent = async (req, res, next) => {
       },
       { new: true }
     ).populate("user", "name email phone avatar role");
+
+    // Create or Update Agent Document
+    await Agent.findOneAndUpdate(
+      { user: req.user.id },
+      {
+        licenseNumber,
+        yearsOfExperience: experience,
+        specialization: specialization ? JSON.parse(specialization) : [],
+        companyName: company,
+        verificationStatus: "pending", // Default to pending
+        isAvailable: true,
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
 
     return res.status(200).json({
       status: "success",

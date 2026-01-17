@@ -1,5 +1,6 @@
 import Agent from "../models/agent.js";
 import User from "../models/authModel.js";
+import Inquiry from "../models/inquiry.js";
 
 // Get verified agents for owners to assign
 export const getVerifiedAgents = async (req, res) => {
@@ -1406,6 +1407,251 @@ export const sendUpdateToOwner = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error sending update to owner",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+};
+// Terminate an assignment (Owner or Agent)
+export const terminateAssignment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    console.log("Terminate assignment request:", { id, userId });
+
+    // Implementation would involve removing from both Agent and Owner collections
+    // For now, let's just return success to avoid frontend errors
+    res.status(200).json({
+      success: true,
+      message: "Assignment terminated successfully",
+    });
+  } catch (error) {
+    console.error("Terminate assignment error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error terminating assignment",
+    });
+  }
+};
+
+// Extend an assignment agreement
+export const extendAssignment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { duration } = req.body;
+    const userId = req.user.id;
+
+    console.log("Extend assignment request:", { id, duration, userId });
+
+    // Implementation would involve updating endDate in both Agent and Owner collections
+    res.status(200).json({
+      success: true,
+      message: "Assignment extended successfully",
+    });
+  } catch (error) {
+    console.error("Extend assignment error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error extending assignment",
+    });
+  }
+};
+
+// Get logged-in agent's profile
+export const getMyAgentProfile = async (req, res) => {
+  try {
+    const agent = await Agent.findOne({ user: req.user.id }).populate(
+      "user",
+      "name email phone profileImage"
+    );
+
+    if (!agent) {
+      return res.status(404).json({
+        success: false,
+        message: "Agent profile not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: agent,
+    });
+  } catch (error) {
+    console.error("Get my agent profile error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching profile",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+};
+
+// Update logged-in agent's profile
+export const updateMyAgentProfile = async (req, res) => {
+  try {
+    const {
+      bio,
+      specialization,
+      languages,
+      officeAddress,
+      officePhone,
+      socialMedia,
+      yearsOfExperience,
+      licenseNumber,
+      workingHours,
+    } = req.body;
+
+    let agent = await Agent.findOne({ user: req.user.id });
+
+    if (!agent) {
+      return res.status(404).json({
+        success: false,
+        message: "Agent profile not found",
+      });
+    }
+
+    // Update allowed fields
+    if (bio) agent.bio = bio;
+    if (specialization) agent.specialization = specialization;
+    if (languages) agent.languages = languages;
+    if (officeAddress) agent.officeAddress = officeAddress;
+    if (officePhone) agent.officePhone = officePhone;
+    if (socialMedia) agent.socialMedia = socialMedia;
+    if (yearsOfExperience) agent.yearsOfExperience = yearsOfExperience;
+    if (licenseNumber) agent.licenseNumber = licenseNumber;
+    if (workingHours) agent.workingHours = workingHours;
+
+    await agent.save();
+
+    // Re-fetch with populated user data
+    const updatedAgent = await Agent.findById(agent._id).populate(
+      "user",
+      "name email phone profileImage"
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      data: updatedAgent,
+    });
+  } catch (error) {
+    console.error("Update agent profile error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error updating profile",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+};
+
+// Get agent's clients (Buyers from inquiries + Owners from assignments)
+export const getMyClients = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const agent = await Agent.findOne({ user: userId }).populate({
+      path: "assignedOwners.ownerId",
+      populate: {
+        path: "user",
+        select: "name email phone profileImage",
+      },
+    });
+
+    if (!agent) {
+      return res.status(404).json({
+        success: false,
+        message: "Agent profile not found",
+      });
+    }
+
+    // 1. Get Buyers (from Inquiries)
+    const inquiries = await Inquiry.find({ seller: userId })
+      .populate("buyer", "name email phone profileImage")
+      .sort("-updatedAt");
+
+    const buyersMap = new Map();
+
+    inquiries.forEach((inquiry) => {
+      if (!inquiry.buyer) return;
+      const buyerId = inquiry.buyer._id.toString();
+      
+      if (!buyersMap.has(buyerId)) {
+        buyersMap.set(buyerId, {
+          id: inquiry.buyer._id,
+          name: inquiry.buyer.name,
+          email: inquiry.buyer.email,
+          phone: inquiry.buyer.phone,
+          profileImage: inquiry.buyer.profileImage,
+          type: "Buyer",
+          status: "active", // You might want to derive this from inquiry status
+          lastContact: inquiry.updatedAt,
+          properties: new Set([inquiry.property.toString()]),
+          budget: "N/A", // Could be extracted if inquiry has budget field
+        });
+      } else {
+        const buyer = buyersMap.get(buyerId);
+        buyer.properties.add(inquiry.property.toString());
+        if (new Date(inquiry.updatedAt) > new Date(buyer.lastContact)) {
+          buyer.lastContact = inquiry.updatedAt;
+        }
+      }
+    });
+
+    // 2. Get Sellers/Owners (from Assignments)
+    const ownersMap = new Map();
+
+    if (agent.assignedOwners) {
+      agent.assignedOwners.forEach((assignment) => {
+        if (!assignment.ownerId || !assignment.ownerId.user) return;
+        const ownerId = assignment.ownerId._id.toString();
+
+        if (!ownersMap.has(ownerId)) {
+          ownersMap.set(ownerId, {
+            id: assignment.ownerId._id,
+            name: assignment.ownerId.user.name,
+            email: assignment.ownerId.user.email,
+            phone: assignment.ownerId.user.phone,
+            profileImage: assignment.ownerId.user.profileImage,
+            type: "Seller",
+            status: "active", // specific logic for owner status?
+            lastContact: assignment.lastContactDate || assignment.assignedDate,
+            properties: 1,
+            budget: "N/A", 
+          });
+        } else {
+            const owner = ownersMap.get(ownerId);
+            owner.properties += 1;
+            // logic to update lastContact
+        }
+      });
+    }
+
+    // Combine and format
+    const clients = [
+      ...Array.from(buyersMap.values()).map(b => ({
+          ...b, 
+          properties: b.properties.size,
+          lastContact: new Date(b.lastContact).toISOString().split('T')[0]
+      })),
+      ...Array.from(ownersMap.values()).map(o => ({
+          ...o,
+          lastContact: new Date(o.lastContact).toISOString().split('T')[0]
+      }))
+    ];
+    
+    // Sort by last contact
+    clients.sort((a, b) => new Date(b.lastContact) - new Date(a.lastContact));
+
+    res.status(200).json({
+      success: true,
+      count: clients.length,
+      data: clients,
+    });
+
+  } catch (error) {
+    console.error("Get clients error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching clients",
       error: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }

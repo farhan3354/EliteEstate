@@ -12,8 +12,7 @@ import { protect, adminMiddleware } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// Admin routes only
-// router.use(protect, adminMiddleware);
+router.use(protect, adminMiddleware);
 
 router.get("/", getAllOwners);
 router.get("/stats", getOwnerStats);

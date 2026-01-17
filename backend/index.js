@@ -8,12 +8,14 @@ import userRoutes from "./routes/usersRoutes.js";
 import propertyRoutes from "./routes/propertiesRoutes.js";
 import favoriteRoutes from "./routes/favoritesRoutes.js";
 import reviewRoutes from "./routes/reviews.js";
-import bookingRoutes from "./routes/bookings.js";
 import agentRoutes from "./routes/agentRoutes.js";
 import adminuserRoutes from "./routes/adminUserRoutes.js";
 import ownerRoutes from "./routes/ownerRoutes.js";
 import assignRoutes from "./routes/agentAssignmentRoutes.js";
 import serviceRoutes from "./routes/serviceRoute.js";
+import inquiryRoutes from "./routes/inquiryRoutes.js";
+import publicAgentRoutes from "./routes/publicAgentRoutes.js";
+import agentDashboardRoutes from "./routes/agentDashboardRoutes.js";
 
 dotenv.config();
 
@@ -26,56 +28,30 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
 
-app.use("/api", authRoutes);
-app.use("/api", agentRoutes);
-app.use("/api", adminuserRoutes);
-app.use("/api/owners", ownerRoutes);
-app.use("/api/agents", assignRoutes);
-app.use("/api", userRoutes);
-app.use("/api/properties", propertyRoutes);
+app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/admin/agents", agentRoutes);
+app.use("/api/v1/admin", adminuserRoutes);
+app.use("/api/v1/owners", ownerRoutes);
+app.use("/api/v1/agents", assignRoutes);
+app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/properties", propertyRoutes);
 app.use("/api/v1/favorites", favoriteRoutes);
 app.use("/api/v1/reviews", reviewRoutes);
-app.use("/api/v1/bookings", bookingRoutes);
-
-app.use("/api", serviceRoutes);
+app.use("/api/v1/services", serviceRoutes);
+app.use("/api/v1/inquiries", inquiryRoutes);
+app.use("/api/v1/agents", publicAgentRoutes);
+app.use("/api/v1/agent-dashboard", agentDashboardRoutes);
 
 app.get("/", (req, res) => {
   res.json({
-    message: "Property API is running...",
+    message: "EliteEstate API is running...",
   });
 });
 
-const PORT = process.env.Port || 5000;
+const PORT = process.env.PORT || 8000;
 
 app.listen(PORT, () => {
-  console.log(`Server running in ${process.env.PORT} mode on port ${PORT}`);
+  console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
 });
 
 export default app;
-
-// import express from "express";
-// import dovenv from "dotenv";
-// import ConnectDB from "./config/db.js";
-// import AuthRoute from "./routes/authRoutes.js";
-// import { createClient } from "@supabase/supabase-js";
-// import cors from "cors";
-
-// dovenv.config();
-
-// const Port = process.env.Port || 2000;
-// const supabase = createClient(
-//   process.env.Supabase_URL,
-//   process.env.Supabase_Key
-// );
-
-// export default supabase;
-// const app = express();
-// app.use(express.json());
-// app.use(cors());
-
-// app.use("/api", AuthRoute);
-
-// ConnectDB();
-// app.listen(Port, () => {
-//   console.log("server started at the port", Port);
-// });

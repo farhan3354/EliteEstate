@@ -79,7 +79,7 @@ const BecomeOwner = () => {
         },
       };
 
-      const response = await api.post("/become-owner", formData, {
+      const response = await api.post("/auth/become-owner", formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",

@@ -341,11 +341,13 @@ export const getProperties = async (req, res) => {
       furnishing,
       area,
       sortBy,
+      listedBy,
     } = req.query;
 
     const query = { status: "active" };
 
     // Apply all filters
+    if (listedBy) query.listedBy = listedBy;
     if (purpose) query.purpose = purpose;
     if (category && category !== "all") query.category = category;
     if (area && area !== "any")
@@ -751,53 +753,3 @@ export const getAdminProperties = async (req, res) => {
     });
   }
 };
-
-// Get all properties
-// export const getProperties = async (req, res) => {
-//   try {
-//     const {
-//       page = 1,
-//       limit = 10,
-//       purpose,
-//       category,
-//       minPrice,
-//       maxPrice,
-//     } = req.query;
-
-//     const query = { status: "active" };
-
-//     if (purpose) query.purpose = purpose;
-//     if (category) query.category = category;
-//     if (minPrice || maxPrice) {
-//       query.price = {};
-//       if (minPrice) query.price.$gte = Number(minPrice);
-//       if (maxPrice) query.price.$lte = Number(maxPrice);
-//     }
-
-//     const skip = (page - 1) * limit;
-
-//     const properties = await Property.find(query)
-//       .populate("listedBy", "name email")
-//       .sort("-createdAt")
-//       .skip(skip)
-//       .limit(parseInt(limit));
-
-//     const total = await Property.countDocuments(query);
-
-//     res.status(200).json({
-//       success: true,
-//       count: properties.length,
-//       total,
-//       data: {
-//         properties,
-//       },
-//     });
-//   } catch (error) {
-//     console.error("Get properties error:", error);
-//     res.status(500).json({
-//       success: false,
-//       message: "Failed to fetch properties",
-//     });
-//   }
-// };
-// In your backend route handlers
