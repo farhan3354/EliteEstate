@@ -15,7 +15,7 @@ import {
   FiShield,
   FiStar,
 } from "react-icons/fi";
-import api from "./../utils/routeapi"; // Your existing axios instance
+import api from "./../utils/routeapi"; 
 
 export default function Register() {
   const navigate = useNavigate();

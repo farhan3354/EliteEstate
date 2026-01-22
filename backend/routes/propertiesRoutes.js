@@ -11,6 +11,9 @@ import {
   getUserProperties,
   searchProperties,
   updatePropertyStatus,
+  getPendingProperties,
+  approveProperty,
+  rejectProperty,
 } from "../controllers/propertyController.js";
 import { protect, adminMiddleware } from "../middleware/auth.js";
 import { upload } from "../config/cloudinary.js";
@@ -22,6 +25,9 @@ router.get("/:id", getProperty);
 router.use(protect);
 
 router.get("/admin", adminMiddleware, getAdminProperties); 
+router.get("/admin/pending", adminMiddleware, getPendingProperties);
+router.put("/admin/:id/approve", adminMiddleware, approveProperty);
+router.put("/admin/:id/reject", adminMiddleware, rejectProperty);
 router.get("/user/my-properties", getUserProperties);
 
 router.post("/", upload.array("images", 5), createProperty);

@@ -405,7 +405,6 @@ export default function Login() {
           })
         );
 
-        // FIX: Get role from userData
         const userRole = userData?.role || "tenant";
 
         console.log("User:", localStorage.getItem("user"));

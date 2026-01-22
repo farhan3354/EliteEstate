@@ -1,4 +1,7 @@
 import React, { useState } from "react";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { logout } from "../../../redux/slices/authSlice";
 import {
   FiMenu,
   FiSearch,
@@ -9,6 +12,15 @@ import {
 
 const OwnerHeader = ({ onMenuClick }) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    if (window.confirm("Are you sure you want to logout?")) {
+      dispatch(logout());
+      navigate("/login");
+    }
+  };
 
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
@@ -85,7 +97,7 @@ const OwnerHeader = ({ onMenuClick }) => {
                   </div>
                   <div className="py-2 border-t border-gray-200">
                     <button
-                      onClick={() => setShowProfileMenu(false)}
+                      onClick={handleLogout}
                       className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
                     >
                       Sign out

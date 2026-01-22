@@ -216,7 +216,7 @@ const AddProperty = () => {
       });
 
       console.log("✅ Property created:", response.data);
-      alert("Property created successfully!");
+      alert("Property submitted successfully! It will go live after admin approval.");
 
       // Navigate after success
       navigate("/properties");

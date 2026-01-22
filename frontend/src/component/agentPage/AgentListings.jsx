@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   FiEye,
@@ -10,69 +10,39 @@ import {
   FiDollarSign,
   FiMapPin,
   FiHome,
+  FiLoader,
 } from "react-icons/fi";
+import { agentAPI } from "../../services/api";
 
 const AgentListings = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [listings, setListings] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const listings = [
-    {
-      id: 1,
-      title: "Luxury Villa - Al Reem Island",
-      price: "4,200,000 AED",
-      location: "Al Reem Island, Abu Dhabi",
-      type: "Villa",
-      status: "active",
-      views: 245,
-      inquiries: 12,
-      date: "2024-01-15",
-      image: "/api/placeholder/400/300",
-    },
-    {
-      id: 2,
-      title: "Modern Apartment - Corniche",
-      price: "1,800,000 AED",
-      location: "Corniche, Abu Dhabi",
-      type: "Apartment",
-      status: "active",
-      views: 189,
-      inquiries: 8,
-      date: "2024-01-10",
-      image: "/api/placeholder/400/300",
-    },
-    {
-      id: 3,
-      title: "Commercial Space - DIFC",
-      price: "5,200,000 AED",
-      location: "DIFC, Dubai",
-      type: "Commercial",
-      status: "pending",
-      views: 156,
-      inquiries: 6,
-      date: "2024-01-18",
-      image: "/api/placeholder/400/300",
-    },
-    {
-      id: 4,
-      title: "Waterfront Studio - Marina",
-      price: "850,000 AED",
-      location: "Marina, Dubai",
-      type: "Apartment",
-      status: "draft",
-      views: 0,
-      inquiries: 0,
-      date: "2024-01-20",
-      image: "/api/placeholder/400/300",
-    },
-  ];
+  useEffect(() => {
+    fetchListings();
+  }, []);
 
-  const filteredListings = listings.filter((listing) => {
+  const fetchListings = async () => {
+    try {
+      setLoading(true);
+      const response = await agentAPI.getAssignedProperties();
+      setListings(response.data.data.assignments);
+    } catch (error) {
+      console.error("Error fetching listings:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredListings = listings.filter((item) => {
+    const listing = item.property;
     const matchesSearch =
       listing.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      listing.location.toLowerCase().includes(searchTerm.toLowerCase());
+      listing.location?.fullAddress.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus =
-      statusFilter === "all" || listing.status === statusFilter;
+      statusFilter === "all" || item.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
@@ -82,8 +52,10 @@ const AgentListings = () => {
         return "bg-green-100 text-green-800";
       case "pending":
         return "bg-yellow-100 text-yellow-800";
-      case "draft":
-        return "bg-gray-100 text-gray-800";
+      case "rejected":
+        return "bg-red-100 text-red-800";
+      case "completed":
+        return "bg-blue-100 text-blue-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -94,13 +66,23 @@ const AgentListings = () => {
       case "active":
         return "Active";
       case "pending":
-        return "Under Review";
-      case "draft":
-        return "Draft";
+        return "Pending";
+      case "rejected":
+        return "Rejected";
+      case "completed":
+        return "Completed";
       default:
-        return status;
+        return status ? status.charAt(0).toUpperCase() + status.slice(1) : "Unknown";
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex justify-center items-center">
+        <FiLoader className="w-12 h-12 animate-spin text-blue-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 p-4 sm:p-6">
@@ -115,7 +97,7 @@ const AgentListings = () => {
           </p>
         </div>
         <Link
-          to="/agent/add-property"
+          to="/agent-dashboard/add-property"
           className="flex items-center justify-center space-x-2 bg-blue-600 text-white px-4 sm:px-6 py-3 rounded-xl hover:bg-blue-700 transition-colors duration-200 w-full sm:w-auto"
         >
           <FiPlus className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -159,20 +141,24 @@ const AgentListings = () => {
         </div>
       </div>
 
-      {/* Listings Grid */}
       <div className="grid gap-4 sm:gap-6">
-        {filteredListings.map((listing) => (
+        {filteredListings.map((item) => {
+          const listing = item.property;
+          return (
           <div
-            key={listing.id}
+            key={item.id}
             className="bg-white rounded-2xl shadow-lg overflow-hidden"
           >
             <div className="flex flex-col lg:flex-row">
               {/* Property Image */}
               <div className="lg:w-64 lg:h-48 flex-shrink-0">
                 <img
-                  src={listing.image}
+                  src={listing.images?.[0] || "/placeholder.jpg"}
                   alt={listing.title}
                   className="w-full h-48 lg:h-full object-cover"
+                  onError={(e) => {
+                    e.target.src = "https://via.placeholder.com/400x300?text=Property";
+                  }}
                 />
               </div>
 
@@ -188,13 +174,13 @@ const AgentListings = () => {
                       <div className="flex items-center space-x-1">
                         <FiMapPin className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                         <span className="text-xs sm:text-sm truncate">
-                          {listing.location}
+                          {listing.location?.fullAddress}
                         </span>
                       </div>
                       <div className="flex items-center space-x-1">
                         <FiHome className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                         <span className="text-xs sm:text-sm">
-                          {listing.type}
+                          {listing.propertyType}
                         </span>
                       </div>
                     </div>
@@ -202,10 +188,10 @@ const AgentListings = () => {
                   <div className="flex items-center space-x-2">
                     <span
                       className={`px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs sm:text-sm font-medium ${getStatusColor(
-                        listing.status
+                        item.status
                       )}`}
                     >
-                      {getStatusText(listing.status)}
+                      {getStatusText(item.status)}
                     </span>
                   </div>
                 </div>
@@ -217,29 +203,30 @@ const AgentListings = () => {
                     <div className="flex items-center space-x-1 sm:space-x-2">
                       <FiDollarSign className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                       <span className="font-semibold text-sm sm:text-lg text-gray-900 truncate">
-                        {listing.price}
+                        {listing.formattedPrice}
                       </span>
                     </div>
+                    {/* Views and inquiries are not yet tracked per assignment in backend, using listing level if available */}
                     <div className="text-right sm:text-left">
-                      <span className="font-semibold">{listing.views}</span>{" "}
+                      <span className="font-semibold">{listing.views || 0}</span>{" "}
                       views
                     </div>
                     <div className="sm:block hidden">
-                      <span className="font-semibold">{listing.inquiries}</span>{" "}
+                      <span className="font-semibold">0</span>{" "}
                       inquiries
                     </div>
                     <div className="sm:block hidden text-gray-500 text-xs">
-                      {listing.date}
+                      {new Date(item.assignedDate).toLocaleDateString()}
                     </div>
                   </div>
 
                   {/* Mobile Stats (for smaller screens) */}
                   <div className="sm:hidden grid grid-cols-2 gap-2 mb-4 text-xs text-gray-600">
                     <div>
-                      <span className="font-semibold">{listing.inquiries}</span>{" "}
+                      <span className="font-semibold">0</span>{" "}
                       inquiries
                     </div>
-                    <div className="text-right">Listed: {listing.date}</div>
+                    <div className="text-right">Assigned: {new Date(item.assignedDate).toLocaleDateString()}</div>
                   </div>
 
                   {/* Action Buttons */}
@@ -251,8 +238,9 @@ const AgentListings = () => {
                       <FiEye className="w-3 h-3 sm:w-4 sm:h-4" />
                       <span className="hidden sm:inline">View</span>
                     </Link>
+                    {/* Only allow edit/delete if agent added the property or has permissions */}
                     <Link
-                      to={`/agent/edit-property/${listing.id}`}
+                      to={`/agent-dashboard/edit-property/${listing.id}`}
                       className="flex items-center space-x-1 sm:space-x-2 px-3 py-2 text-gray-600 hover:text-blue-600 transition-colors duration-200 text-sm"
                     >
                       <FiEdit className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -267,7 +255,7 @@ const AgentListings = () => {
               </div>
             </div>
           </div>
-        ))}
+        )})}
       </div>
 
       {/* Empty State */}
@@ -283,7 +271,7 @@ const AgentListings = () => {
               : "You haven't listed any properties yet"}
           </p>
           <Link
-            to="/agent/add-property"
+            to="/agent-dashboard/add-property"
             className="inline-flex items-center justify-center space-x-2 bg-blue-600 text-white px-4 sm:px-6 py-3 rounded-xl hover:bg-blue-700 transition-colors duration-200 text-sm sm:text-base w-full sm:w-auto"
           >
             <FiPlus className="w-4 h-4 sm:w-5 sm:h-5" />

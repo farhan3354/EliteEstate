@@ -16,6 +16,7 @@ import serviceRoutes from "./routes/serviceRoute.js";
 import inquiryRoutes from "./routes/inquiryRoutes.js";
 import publicAgentRoutes from "./routes/publicAgentRoutes.js";
 import agentDashboardRoutes from "./routes/agentDashboardRoutes.js";
+import bookingRoutes from "./routes/bookingRoutes.js";
 
 dotenv.config();
 
@@ -41,6 +42,7 @@ app.use("/api/v1/services", serviceRoutes);
 app.use("/api/v1/inquiries", inquiryRoutes);
 app.use("/api/v1/agents", publicAgentRoutes);
 app.use("/api/v1/agent-dashboard", agentDashboardRoutes);
+app.use("/api/v1/bookings", bookingRoutes);
 
 app.get("/", (req, res) => {
   res.json({

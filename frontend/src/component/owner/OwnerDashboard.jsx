@@ -9,6 +9,7 @@ import {
   FiUsers,
   FiEdit,
   FiEye,
+  FiCalendar,
 } from "react-icons/fi";
 import { MdApartment } from "react-icons/md";
 
@@ -40,6 +41,13 @@ const OwnerDashboard = () => {
       value: "$25,400",
       icon: <FiDollarSign />,
       color: "bg-purple-500",
+      iconColor: "text-white",
+    },
+    {
+      label: "Viewing Requests",
+      value: "8",
+      icon: <FiCalendar />,
+      color: "bg-orange-500",
       iconColor: "text-white",
     },
   ];
@@ -74,6 +82,14 @@ const OwnerDashboard = () => {
       link: "/owner-dashboard/assign-agent",
       color: "hover:border-purple-500 hover:bg-purple-50",
       iconBg: "bg-purple-100",
+    },
+    {
+      title: "Viewing Requests",
+      description: "Manage appointments from potential buyers",
+      icon: <FiCalendar className="text-orange-500 text-2xl" />,
+      link: "/owner-dashboard/viewing-requests",
+      color: "hover:border-orange-500 hover:bg-orange-50",
+      iconBg: "bg-orange-100",
     },
   ];
 

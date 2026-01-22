@@ -71,6 +71,14 @@ export const inquiryAPI = {
   markAsRead: (id) => api.patch(`/inquiries/${id}/read`),
 };
 
+// Booking APIs
+export const bookingAPI = {
+  create: (data) => api.post("/bookings", data),
+  getMyBookings: () => api.get("/bookings/my-bookings"),
+  getLandlordBookings: () => api.get("/bookings/landlord-bookings"),
+  updateStatus: (id, status) => api.put(`/bookings/${id}/status`, { status }),
+};
+
 
 
 // Agent APIs
@@ -80,6 +88,8 @@ export const agentAPI = {
   getMyProfile: () => api.get("/agent-dashboard/profile"),
   updateMyProfile: (data) => api.patch("/agent-dashboard/profile", data),
   getClients: () => api.get("/agent-dashboard/clients"),
+  getAssignedProperties: () => api.get("/agent-assignment/agent/assigned-properties"),
+  updateAssignmentStatus: (id, status) => api.put(`/agent-assignment/assignment/${id}/status`, { status }),
 };
 
 // User APIs

@@ -75,7 +75,7 @@ export const createProperty = async (req, res) => {
       bathrooms: parseInt(req.body.bathrooms),
       area: parseFloat(req.body.area),
       listedBy: userId,
-      status: req.body.status || "active",
+      status: req.user.role === "admin" ? (req.body.status || "active") : "pending",
       images,
     };
 
@@ -750,6 +750,113 @@ export const getAdminProperties = async (req, res) => {
       success: false,
       message: "Error fetching properties",
       error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+};
+// Approve property
+export const approveProperty = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const property = await Property.findById(id);
+
+    if (!property) {
+      return res.status(404).json({
+        success: false,
+        message: "Property not found",
+      });
+    }
+
+    property.status = "active";
+    property.isVerified = true;
+
+    if (!property.statusHistory) {
+      property.statusHistory = [];
+    }
+
+    property.statusHistory.push({
+      status: "active",
+      changedBy: req.user.id,
+      changedAt: new Date(),
+      reason: "Approved by admin",
+    });
+
+    await property.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Property approved successfully",
+      data: { property },
+    });
+  } catch (error) {
+    console.error("Approve property error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to approve property",
+    });
+  }
+};
+
+// Reject property
+export const rejectProperty = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+
+    const property = await Property.findById(id);
+
+    if (!property) {
+      return res.status(404).json({
+        success: false,
+        message: "Property not found",
+      });
+    }
+
+    property.status = "rejected";
+
+    if (!property.statusHistory) {
+      property.statusHistory = [];
+    }
+
+    property.statusHistory.push({
+      status: "rejected",
+      changedBy: req.user.id,
+      changedAt: new Date(),
+      reason: reason || "Rejected by admin",
+    });
+
+    await property.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Property rejected successfully",
+      data: { property },
+    });
+  } catch (error) {
+    console.error("Reject property error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to reject property",
+    });
+  }
+};
+
+// Get pending properties for admin
+export const getPendingProperties = async (req, res) => {
+  try {
+    const properties = await Property.find({ status: "pending" })
+      .populate("listedBy", "name email phone")
+      .sort("-createdAt");
+
+    res.status(200).json({
+      success: true,
+      count: properties.length,
+      data: { properties },
+    });
+  } catch (error) {
+    console.error("Get pending properties error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch pending properties",
     });
   }
 };

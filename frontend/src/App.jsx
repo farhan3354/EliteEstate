@@ -25,7 +25,7 @@ import AgentProfile from "./component/agentPage/AgentProfile";
 import Agents from "./component/agentPage/AgentsList";
 import AgentLayout from "./component/common/agent/AgentLayout";
 import AgentDashboard from "./component/agentPage/AgentDashboard";
-import AgentListings from "./component/agentPage/AgentListings ";
+import AgentListings from "./component/agentPage/AgentListings";
 import AgentClients from "./component/agentPage/AgentClients";
 import AgentInquiries from "./component/agentPage/AgentInquiries";
 import AgentPerformance from "./component/agentPage/AgentPerformance";
@@ -45,6 +45,8 @@ import OwnerInquiries from "./component/owner/OwnerInquiries";
 import OwnerAssignedAgents from "./component/owner/OwnerAssignedAgents";
 import AgentAvailability from "./component/agentPage/AgentAvailability";
 import AgentAssignedProperties from "./component/agentPage/AgentAssignedProperties";
+import OwnerBookings from "./component/owner/OwnerBookings";
+import UserBookings from "./component/userDashboard/UserBookings";
 
 export default function App() {
   return (
@@ -68,12 +70,9 @@ export default function App() {
         {/* <Route element={<ProtectRoute allowedRoles={["user"]} />}> */}
         <Route path="/user-dashboard" element={<UserLayout />}>
           <Route index element={<Dashboard />} />
-          {/* <Route path="add-property" element={<AddProperty />} /> */}
-          {/* <Route path="my-properties" element={<MyProperty />} /> */}
           <Route path="favorites" element={<Favorites />} />
-
+          <Route path="bookings" element={<UserBookings />} />
           <Route path="profile" element={<Profile />} />
-          {/* </Route> */}
         </Route>
         {/* <Route element={<ProtectRoute allowedRoles={["owner"]} />}> */}
         <Route path="/owner-dashboard" element={<OwnerLayout />}>
@@ -85,6 +84,7 @@ export default function App() {
           <Route path="inquiries" element={<OwnerInquiries />} />
           <Route path="assign-agent" element={<AssignAgent />} />
           <Route path="assigned-agents" element={<OwnerAssignedAgents />} />
+          <Route path="viewing-requests" element={<OwnerBookings />} />
           <Route path="profile" element={<Profile />} />
         </Route>
         {/* </Route> */}
@@ -94,8 +94,7 @@ export default function App() {
           <Route path="listings" element={<AgentListings />} />
           <Route path="clients" element={<AgentClients />} />
           <Route path="inquiries" element={<AgentInquiries />} />
-
-          <Route path="add-property" element={<AddProperty />} />{" "}
+          <Route path="add-property" element={<AddProperty />} />
           <Route path="performance" element={<AgentPerformance />} />
           <Route path="owner-property" element={<AgentAssignedProperties />} />
           <Route path="avala" element={<AgentAvailability />} />
@@ -112,10 +111,7 @@ export default function App() {
           <Route path="properties/pending" element={<PendingProperties />} />
           <Route path="reviews" element={<AdminReviews />} />
           <Route path="commissions" element={<AdminCommissions />} />
-
         </Route>
-
-
       </Routes>
     </Router>
   );

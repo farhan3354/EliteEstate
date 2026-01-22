@@ -18,6 +18,7 @@ import {
 } from "react-icons/fi";
 import api from "../utils/routeapi";
 import ContactPropertyModal from "../component/ContactPropertyModal";
+import BookViewingModal from "../component/property/BookViewingModal";
 import { favoriteAPI } from "../services/api";
 
 const PropertyDetails = () => {
@@ -33,6 +34,7 @@ const PropertyDetails = () => {
   const [agent, setAgent] = useState(null);
   const [favoriteLoading, setFavoriteLoading] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
+  const [showBookModal, setShowBookModal] = useState(false);
 
   const checkFavoriteStatus = useCallback(async () => {
     if (!token || !id) return;
@@ -415,6 +417,13 @@ const PropertyDetails = () => {
                     <FiPhone className="w-5 h-5" />
                     <span>Call</span>
                   </button>
+                  <button
+                    onClick={() => setShowBookModal(true)}
+                    className="flex-1 bg-blue-50 text-blue-600 border border-blue-600 hover:bg-blue-100 py-3 px-6 rounded-lg font-semibold transition duration-200 flex items-center justify-center space-x-2"
+                  >
+                    <FiCalendar className="w-5 h-5" />
+                    <span>Schedule Viewing</span>
+                  </button>
                 </div>
               </div>
               <div className="bg-white rounded-lg border border-gray-200 mb-6">
@@ -731,6 +740,16 @@ const PropertyDetails = () => {
             setShowContactModal(false);
             alert("Inquiry sent successfully! The seller will contact you soon.");
           }}
+        />
+      )}
+      
+      {/* Book Viewing Modal */}
+      {showBookModal && (
+        <BookViewingModal
+          isOpen={showBookModal}
+          onClose={() => setShowBookModal(false)}
+          propertyId={property._id}
+          propertyTitle={property.title}
         />
       )}
     </>

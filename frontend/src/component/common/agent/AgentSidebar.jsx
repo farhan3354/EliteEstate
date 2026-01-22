@@ -1,5 +1,7 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { logout } from "../../../redux/slices/authSlice";
 import {
   FiHome,
   FiPlus,
@@ -18,6 +20,13 @@ import {
 
 const AgentSidebar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/login");
+  };
 
   const menuItems = [
     {
@@ -162,7 +171,9 @@ const AgentSidebar = () => {
             </div>
           </div>
           <div className="mt-6">
-            <button className="flex items-center rounded-lg transition-all duration-200 group relative lg:justify-start justify-center lg:px-4 lg:py-3 p-3 text-gray-600 hover:bg-gray-50 hover:text-gray-800 w-full">
+            <button 
+              onClick={handleLogout}
+              className="flex items-center rounded-lg transition-all duration-200 group relative lg:justify-start justify-center lg:px-4 lg:py-3 p-3 text-gray-600 hover:bg-gray-50 hover:text-gray-800 w-full">
               <div className="flex items-center lg:space-x-3">
                 <FiLogOut className="w-5 h-5" />
                 <span className="hidden lg:block font-medium">Logout</span>

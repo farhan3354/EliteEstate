@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useSelector } from "react-redux";
 import {
   FiHome,
   FiEye,
@@ -11,104 +12,129 @@ import {
   FiUserPlus,
   FiPlus,
   FiBarChart,
+  FiLoader,
 } from "react-icons/fi";
+import { agentAPI, inquiryAPI, bookingAPI } from "../../services/api";
 
 const AgentDashboard = () => {
-  const stats = [
-    {
-      label: "Total Listings",
-      value: "24",
-      change: "+12%",
-      trend: "up",
-      icon: FiHome,
-      color: "blue",
-    },
-    {
-      label: "Property Views",
-      value: "1,248",
-      change: "+8%",
-      trend: "up",
-      icon: FiEye,
-      color: "green",
-    },
-    {
-      label: "New Inquiries",
-      value: "18",
-      change: "+5",
-      trend: "up",
-      icon: FiMessageSquare,
-      color: "purple",
-    },
-    {
-      label: "Scheduled Viewings",
-      value: "12",
-      change: "-2",
-      trend: "down",
-      icon: FiCalendar,
-      color: "orange",
-    },
-  ];
+  const { user } = useSelector((state) => state.auth);
+  const [loading, setLoading] = useState(true);
+  const [dashboardData, setDashboardData] = useState({
+    stats: [],
+    recentActivities: [],
+    topProperties: [],
+    agentInfo: null,
+  });
 
-  const recentActivities = [
-    {
-      id: 1,
-      type: "inquiry",
-      message: "New inquiry for Luxury Villa - Al Reem Island",
-      time: "2 hours ago",
-      property: "Luxury Villa - Al Reem Island",
-      client: "Mohammed Ali",
-    },
-    {
-      id: 2,
-      type: "viewing",
-      message: "Viewing scheduled for Modern Apartment - Corniche",
-      time: "4 hours ago",
-      property: "Modern Apartment - Corniche",
-      client: "Sarah Johnson",
-    },
-    {
-      id: 3,
-      type: "listing",
-      message: "New property listed: Commercial Space - DIFC",
-      time: "1 day ago",
-      property: "Commercial Space - DIFC",
-    },
-    {
-      id: 4,
-      type: "sale",
-      message: "Property sold: 2BR Apartment - Downtown",
-      time: "2 days ago",
-      property: "2BR Apartment - Downtown",
-      client: "Mike Chen",
-    },
-  ];
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
 
-  const topProperties = [
-    {
-      id: 1,
-      title: "Luxury Villa - Al Reem Island",
-      price: "4,200,000 AED",
-      views: 245,
-      inquiries: 12,
-      status: "Active",
-    },
-    {
-      id: 2,
-      title: "Modern Apartment - Corniche",
-      price: "1,800,000 AED",
-      views: 189,
-      inquiries: 8,
-      status: "Active",
-    },
-    {
-      id: 3,
-      title: "Commercial Space - DIFC",
-      price: "5,200,000 AED",
-      views: 156,
-      inquiries: 6,
-      status: "Under Offer",
-    },
-  ];
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const [assignedRes, inquiryRes, bookingRes, profileRes] = await Promise.all([
+        agentAPI.getAssignedProperties(),
+        inquiryAPI.getSellerInquiries(),
+        bookingAPI.getLandlordBookings(),
+        agentAPI.getMyProfile(),
+      ]);
+
+      const assignedData = assignedRes.data.data;
+      const inquiryData = inquiryRes.data.data;
+      const bookings = bookingRes.data.data.bookings;
+      const agentProfile = profileRes.data.data;
+
+      // Map Stats
+      const stats = [
+        {
+          label: "Total Assignments",
+          value: assignedData.stats.totalAssignments || 0,
+          change: assignedData.stats.acceptanceRate || "0%",
+          trend: "up",
+          icon: FiHome,
+          color: "blue",
+        },
+        {
+          label: "Active Inquiries",
+          value: inquiryData.stats.total || 0,
+          change: `+${inquiryData.stats.new || 0} new`,
+          trend: "up",
+          icon: FiMessageSquare,
+          color: "purple",
+        },
+        {
+          label: "Scheduled Viewings",
+          value: bookings.length || 0,
+          change: bookings.filter(b => b.status === 'pending').length + " pending",
+          trend: "up",
+          icon: FiCalendar,
+          color: "orange",
+        },
+        {
+          label: "Agent Rating",
+          value: agentProfile.rating?.average || 0,
+          change: `${agentProfile.rating?.totalReviews || 0} reviews`,
+          trend: "up",
+          icon: FiStar,
+          color: "green",
+        },
+      ];
+
+      // Map Recent Activities
+      const activities = [];
+      
+      // Add inquiries to activities
+      inquiryData.inquiries.slice(0, 3).forEach(inq => {
+        activities.push({
+          id: `inq-${inq._id}`,
+          type: "inquiry",
+          message: `New inquiry for ${inq.property?.title}`,
+          time: new Date(inq.createdAt).toLocaleDateString(),
+          property: inq.property?.title,
+          client: inq.buyer?.name,
+          date: new Date(inq.createdAt)
+        });
+      });
+
+      // Add bookings to activities
+      bookings.slice(0, 3).forEach(book => {
+        activities.push({
+          id: `book-${book._id}`,
+          type: "viewing",
+          message: `Viewing scheduled for ${book.property?.title}`,
+          time: new Date(book.date).toLocaleDateString(),
+          property: book.property?.title,
+          client: book.user?.name,
+          date: new Date(book.createdAt)
+        });
+      });
+
+      activities.sort((a, b) => b.date - a.date);
+
+      // Map Top Properties (using assigned properties for now)
+      const topProps = assignedData.assignments.slice(0, 3).map(assign => ({
+        id: assign.property.id,
+        title: assign.property.title,
+        price: assign.property.formattedPrice,
+        views: Math.floor(Math.random() * 100), // Placeholder as backend doesn't track views per agent assignment yet
+        inquiries: 0, // Placeholder
+        status: assign.status,
+      }));
+
+      setDashboardData({
+        stats,
+        recentActivities: activities.slice(0, 5),
+        topProperties: topProps,
+        agentInfo: agentProfile,
+      });
+
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getActivityIcon = (type) => {
     switch (type) {
@@ -129,6 +155,14 @@ const AgentDashboard = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex justify-center items-center">
+        <FiLoader className="w-12 h-12 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">
       {/* Hero Banner */}
@@ -136,7 +170,7 @@ const AgentDashboard = () => {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
           <div className="mb-4 lg:mb-0">
             <h1 className="text-2xl sm:text-3xl font-bold mb-2">
-              Welcome back, Ahmed!
+              Welcome back, {user?.name || "Agent"}!
             </h1>
             <p className="text-blue-100 text-sm sm:text-lg">
               Here's what's happening with your properties today.
@@ -144,7 +178,7 @@ const AgentDashboard = () => {
           </div>
           <div>
             <Link
-              to="/agent/add-property"
+              to="/agent-dashboard/add-property"
               className="inline-flex items-center justify-center space-x-2 bg-white text-blue-600 px-4 sm:px-6 py-3 rounded-xl hover:bg-blue-50 transition-colors duration-200 font-medium w-full lg:w-auto text-sm sm:text-base"
             >
               <FiHome className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -156,7 +190,7 @@ const AgentDashboard = () => {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        {stats.map((stat, index) => {
+        {dashboardData.stats.map((stat, index) => {
           const Icon = stat.icon;
           const colorClass = `text-${stat.color}-600 bg-${stat.color}-100`;
           return (
@@ -203,7 +237,7 @@ const AgentDashboard = () => {
           </div>
           <div className="p-4 sm:p-6">
             <div className="space-y-3 sm:space-y-4">
-              {recentActivities.map((activity) => (
+              {dashboardData.recentActivities.length > 0 ? dashboardData.recentActivities.map((activity) => (
                 <div
                   key={activity.id}
                   className="flex items-start space-x-3 sm:space-x-4 pb-3 sm:pb-4 border-b border-gray-100 last:border-b-0 last:pb-0"
@@ -225,7 +259,9 @@ const AgentDashboard = () => {
                     </p>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <p className="text-gray-500 text-center py-4">No recent activities</p>
+              )}
             </div>
           </div>
         </div>
@@ -239,7 +275,7 @@ const AgentDashboard = () => {
           </div>
           <div className="p-4 sm:p-6">
             <div className="space-y-3 sm:space-y-4">
-              {topProperties.map((property) => (
+              {dashboardData.topProperties.length > 0 ? dashboardData.topProperties.map((property) => (
                 <div
                   key={property.id}
                   className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 border border-gray-200 rounded-xl hover:shadow-md transition-shadow duration-200"
@@ -265,7 +301,7 @@ const AgentDashboard = () => {
                     </div>
                     <span
                       className={`inline-block px-2 py-1 text-xs font-medium rounded-full mt-1 ${
-                        property.status === "Active"
+                        property.status === "active" || property.status === "Active"
                           ? "bg-green-100 text-green-800"
                           : "bg-yellow-100 text-yellow-800"
                       }`}
@@ -274,7 +310,9 @@ const AgentDashboard = () => {
                     </span>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <p className="text-gray-500 text-center py-4">No data available</p>
+              )}
             </div>
           </div>
         </div>
@@ -290,7 +328,7 @@ const AgentDashboard = () => {
         <div className="p-4 sm:p-6">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <Link
-              to="/agent/add-property"
+              to="/agent-dashboard/add-property"
               className="flex flex-col items-center justify-center p-4 sm:p-6 border-2 border-dashed border-gray-300 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-colors duration-200 text-center"
             >
               <FiPlus className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400 mb-2 sm:mb-3" />
@@ -303,7 +341,7 @@ const AgentDashboard = () => {
             </Link>
 
             <Link
-              to="/agent/schedule"
+              to="/agent-dashboard/avala"
               className="flex flex-col items-center justify-center p-4 sm:p-6 border-2 border-gray-200 rounded-xl hover:border-green-500 hover:bg-green-50 transition-colors duration-200 text-center"
             >
               <FiCalendar className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400 mb-2 sm:mb-3" />
@@ -316,7 +354,7 @@ const AgentDashboard = () => {
             </Link>
 
             <Link
-              to="/agent/inquiries"
+              to="/agent-dashboard/inquiries"
               className="flex flex-col items-center justify-center p-4 sm:p-6 border-2 border-gray-200 rounded-xl hover:border-purple-500 hover:bg-purple-50 transition-colors duration-200 text-center"
             >
               <FiMessageSquare className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400 mb-2 sm:mb-3" />
@@ -329,7 +367,7 @@ const AgentDashboard = () => {
             </Link>
 
             <Link
-              to="/agent/performance"
+              to="/agent-dashboard/performance"
               className="flex flex-col items-center justify-center p-4 sm:p-6 border-2 border-gray-200 rounded-xl hover:border-orange-500 hover:bg-orange-50 transition-colors duration-200 text-center"
             >
               <FiBarChart className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400 mb-2 sm:mb-3" />

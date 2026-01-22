@@ -1,5 +1,7 @@
 import React from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { logout } from "../../../redux/slices/authSlice";
 import {
   FiHome,
   FiPlusCircle,
@@ -7,6 +9,7 @@ import {
   FiUsers,
   FiUser,
   FiLogOut,
+  FiCalendar,
   FiX,
   FiDollarSign,
   FiTool,
@@ -16,6 +19,16 @@ import {
 import { MdApartment } from "react-icons/md";
 
 const OwnerSidebar = ({ isOpen, onClose }) => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    if (window.confirm("Are you sure you want to logout?")) {
+      dispatch(logout());
+      navigate("/login");
+      if (onClose) onClose();
+    }
+  };
   const menuItems = [
     { path: "", label: "Dashboard", icon: <FiHome className="h-5 w-5" /> },
     {
@@ -33,6 +46,11 @@ const OwnerSidebar = ({ isOpen, onClose }) => {
       label: "Inquiries",
       icon: <FiMessageSquare className="h-5 w-5" />,
       badge: 5,
+    },
+    {
+      path: "viewing-requests",
+      label: "Viewing Requests",
+      icon: <FiCalendar className="h-5 w-5" />,
     },
     {
       path: "assign-agent",
@@ -148,9 +166,7 @@ const OwnerSidebar = ({ isOpen, onClose }) => {
                   </NavLink>
                 ))}
                 <button
-                  onClick={() => {
-                    console.log("Logout clicked");
-                  }}
+                  onClick={handleLogout}
                   className="flex w-full items-center gap-3 px-4 py-3 text-red-600 rounded-lg hover:bg-red-50 transition-colors mt-2"
                 >
                   <FiLogOut className="h-5 w-5" />
