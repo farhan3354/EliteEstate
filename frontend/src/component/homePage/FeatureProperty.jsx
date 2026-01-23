@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FiHeart, FiMapPin, FiArrowRight } from "react-icons/fi";
 import api from "../../utils/routeapi";
+import { propertyAPI } from "../../services/api";
 import { useSelector } from "react-redux";
 
 const FeaturedProperties = () => {
@@ -22,7 +23,6 @@ const FeaturedProperties = () => {
     if (token && featuredProperties.length > 0) {
       checkAllFavoriteStatus();
     } else if (!token) {
-      // Reset all favorites if no token
       const resetFavorites = {};
       featuredProperties.forEach(property => {
         resetFavorites[property._id] = false;
@@ -35,18 +35,13 @@ const FeaturedProperties = () => {
     try {
       setLoading(true);
       let response;
-      
-      // First try the featured endpoint
-      try {
-        response = await api.get("/properties/featured");
-        console.log("Featured properties response:", response.data);
+            try {
+        response = await api.getFeatured();
+        // response = await api.get("/properties");
       } catch (featuredError) {
-        console.log("Featured endpoint failed, trying regular properties");
-        // Fallback to latest properties
         response = await api.get("/properties?limit=6&sort=-createdAt");
       }
       
-      // Handle different response structures
       let properties = [];
       if (response.data.success) {
         properties = response.data.data?.properties || [];
@@ -56,10 +51,7 @@ const FeaturedProperties = () => {
         properties = response.data;
       }
       
-      console.log("Setting properties:", properties);
       setFeaturedProperties(properties);
-      
-      // Initialize favorite states
       const initialFavorites = {};
       properties.forEach(property => {
         initialFavorites[property._id] = false;
@@ -67,7 +59,6 @@ const FeaturedProperties = () => {
       setIsFavorite(initialFavorites);
     } catch (error) {
       console.error("Error fetching featured properties:", error);
-      // Fallback to empty array
       setFeaturedProperties([]);
     } finally {
       setLoading(false);
@@ -80,14 +71,14 @@ const FeaturedProperties = () => {
     try {
       const favoriteStatusPromises = featuredProperties.map(async (property) => {
         try {
-          const response = await api.get(`/favorites/check/${property._id}`);
+          const response = await api.get(`/favorites/check/${property.id}`);
           return { 
-            propertyId: property._id, 
+            propertyId: property.id, 
             isFavorite: response.data.data?.isFavorite || false 
           };
         } catch (error) {
-          console.error(`Error checking favorite for property ${property._id}:`, error);
-          return { propertyId: property._id, isFavorite: false };
+          console.error(`Error checking favorite for property ${property.id}:`, error);
+          return { propertyId: property.id, isFavorite: false };
         }
       });
       
@@ -338,7 +329,6 @@ const FeaturedProperties = () => {
     );
   };
 
-  // Loading state
   if (loading) {
     return (
       <section className="py-12 bg-gray-50">
@@ -377,7 +367,6 @@ const FeaturedProperties = () => {
     );
   }
 
-  // Empty state
   if (featuredProperties.length === 0) {
     return (
       <section className="py-12 bg-gray-50">
@@ -491,6 +480,7 @@ const FeaturedProperties = () => {
 };
 
 export default FeaturedProperties;
+
 // import React, { useState, useRef, useEffect } from "react";
 // import { Link, useNavigate } from "react-router-dom";
 // import {

@@ -12,6 +12,7 @@ const AdminSidebar = () => {
     { path: "/admin-dashboard/agents", label: "Agents", icon: "🤵" },
     { path: "/admin-dashboard/properties", label: "Properties", icon: "🏠" },
     { path: "/admin-dashboard/properties/pending", label: "Pending Properties", icon: "⏳" },
+    { path: "/admin-dashboard/locations", label: "Locations", icon: "📍" },
     { path: "/admin-dashboard/bookings", label: "Viewings", icon: "📅" },
     { path: "/admin-dashboard/reviews", label: "Reviews", icon: "⭐" },
     { path: "/admin-dashboard/settings", label: "Settings", icon: "⚙️" },

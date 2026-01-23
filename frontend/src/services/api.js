@@ -24,13 +24,12 @@ export const propertyAPI = {
       headers: { "Content-Type": "multipart/form-data" },
     }),
   delete: (id) => api.delete(`/properties/${id}`),
-  getFeatured: () => api.get("/properties/featured"),
+  getFeatured: () => api.get("/properties"),
   getUserProperties: () =>
     api.get("/properties/user/my-properties"),
   search: (params) =>
     api.get("/properties/search", { params }),
   getSimilar: (id) => api.get(`/properties/similar/${id}`),
-  incrementViews: (id) => api.patch(`/properties/${id}/views`),
 };
 
 // Favorite APIs
@@ -102,4 +101,18 @@ export const userAPI = {
   getUserStats: () => api.get("/users/stats"),
   becomeAgent: (data) => api.post("/users/become-agent", data),
   getAgentListings: () => api.get("/users/agent/listings"),
+};
+
+export const locationAPI = {
+  getAll: () => api.get("/locations"),
+  getPopular: () => api.get("/locations/popular"),
+  create: (formData) =>
+    api.post("/locations", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+  update: (id, formData) =>
+    api.put(`/locations/${id}`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+  delete: (id) => api.delete(`/locations/${id}`),
 };

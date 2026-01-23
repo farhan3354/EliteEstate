@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import api from "../../utils/routeapi";
 import { FiCheck, FiX, FiEye, FiClock, FiUser, FiHome, FiDollarSign } from "react-icons/fi";
 import { Link } from "react-router-dom";
+import Swal from "sweetalert2";
 
 const PendingProperties = () => {
   const [properties, setProperties] = useState([]);
@@ -27,26 +28,66 @@ const PendingProperties = () => {
 
   const approveProperty = async (id) => {
     try {
-      await api.put(`/properties/admin/${id}/approve`);
-      setProperties(properties.filter((p) => p._id !== id));
-      alert("Property approved successfully!");
+      const result = await Swal.fire({
+        title: "Approve Property?",
+        text: "This property will be visible to all users.",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "#10b981",
+        cancelButtonColor: "#6b7280",
+        confirmButtonText: "Yes, approve it!",
+      });
+
+      if (result.isConfirmed) {
+        await api.put(`/properties/admin/${id}/approve`);
+        setProperties(properties.filter((p) => p._id !== id));
+        Swal.fire({
+          title: "Approved!",
+          text: "Property approved successfully!",
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+      }
     } catch (err) {
       console.error("Error approving property:", err);
-      alert("Failed to approve property.");
+      Swal.fire("Error", "Failed to approve property.", "error");
     }
   };
 
   const rejectProperty = async (id) => {
-    const reason = window.prompt("Enter reason for rejection:");
-    if (reason === null) return;
+    const { value: reason } = await Swal.fire({
+      title: "Reject Property",
+      input: "textarea",
+      inputLabel: "Reason for rejection",
+      inputPlaceholder: "Enter reason here...",
+      inputAttributes: {
+        "aria-label": "Enter reason here",
+      },
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      inputValidator: (value) => {
+        if (!value) {
+          return "You need to provide a reason!";
+        }
+      },
+    });
 
-    try {
-      await api.put(`/properties/admin/${id}/reject`, { reason });
-      setProperties(properties.filter((p) => p._id !== id));
-      alert("Property rejected.");
-    } catch (err) {
-      console.error("Error rejecting property:", err);
-      alert("Failed to reject property.");
+    if (reason) {
+      try {
+        await api.put(`/properties/admin/${id}/reject`, { reason });
+        setProperties(properties.filter((p) => p._id !== id));
+        Swal.fire({
+          title: "Rejected",
+          text: "Property has been rejected.",
+          icon: "info",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+      } catch (err) {
+        console.error("Error rejecting property:", err);
+        Swal.fire("Error", "Failed to reject property.", "error");
+      }
     }
   };
 

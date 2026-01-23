@@ -2,7 +2,6 @@ import Agent from "../models/agent.js";
 import User from "../models/authModel.js";
 import Inquiry from "../models/inquiry.js";
 
-// Get verified agents for owners to assign
 export const getVerifiedAgents = async (req, res) => {
   try {
     const {
@@ -18,22 +17,17 @@ export const getVerifiedAgents = async (req, res) => {
       verificationStatus: "verified",
     };
 
-    // Filter by specialization
     if (specialization) {
       query.specialization = { $in: [specialization] };
     }
 
-    // Filter by location/areas served
     if (location) {
       query.areasServed = { $in: [location] };
     }
-
-    // Filter by minimum experience
     if (minExperience) {
       query.yearsOfExperience = { $gte: parseInt(minExperience) };
     }
 
-    // Search functionality
     if (search) {
       const users = await User.find({
         $or: [
@@ -63,17 +57,14 @@ export const getVerifiedAgents = async (req, res) => {
 
     const total = await Agent.countDocuments(query);
 
-    // Get available specializations for filtering
     const specializations = await Agent.distinct("specialization", {
       verificationStatus: "verified",
     });
-
-    // Get available locations for filtering
     const locations = await Agent.distinct("areasServed", {
       verificationStatus: "verified",
     });
 
-    res.status(200).json({
+   return res.status(200).json({
       success: true,
       data: {
         agents,
@@ -91,10 +82,9 @@ export const getVerifiedAgents = async (req, res) => {
     });
   } catch (error) {
     console.error("Get verified agents error:", error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Error fetching agents",
-      error: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
 };
@@ -127,16 +117,15 @@ export const getAgentDetails = async (req, res) => {
       });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       data: agent,
     });
   } catch (error) {
     console.error("Get agent details error:", error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Error fetching agent details",
-      error: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
 };
@@ -532,68 +521,6 @@ export const getAgentAssignments = async (req, res) => {
   }
 };
 
-// // Update assignment status (accept/reject/complete)
-// export const updateAssignmentStatus = async (req, res) => {
-//   try {
-//     const { assignmentId } = req.params;
-//     const { status } = req.body;
-//     const agentId = req.user.id;
-
-//     const agent = await Agent.findOne({ user: agentId });
-//     if (!agent) {
-//       return res.status(404).json({
-//         success: false,
-//         message: "Agent not found",
-//       });
-//     }
-
-//     const assignment = agent.assignedOwners.id(assignmentId);
-//     if (!assignment) {
-//       return res.status(404).json({
-//         success: false,
-//         message: "Assignment not found",
-//       });
-//     }
-
-//     assignment.status = status;
-//     if (status === "completed") {
-//       assignment.completedAt = new Date();
-//     }
-
-//     await agent.save();
-
-//     // Update owner's assignment status
-//     const owner = await Owner.findById(assignment.ownerId);
-//     if (owner) {
-//       const ownerAssignment = owner.assignedAgents.find(
-//         (a) =>
-//           a.agentId.toString() === agent._id.toString() &&
-//           a.propertyId.toString() === assignment.propertyId.toString()
-//       );
-//       if (ownerAssignment) {
-//         ownerAssignment.status = status;
-//         await owner.save();
-//       }
-//     }
-
-//     res.status(200).json({
-//       success: true,
-//       message: `Assignment ${status} successfully`,
-//       data: {
-//         assignmentId,
-//         status,
-//       },
-//     });
-//   } catch (error) {
-//     console.error("Update assignment status error:", error);
-//     res.status(500).json({
-//       success: false,
-//       message: "Error updating assignment status",
-//       error: process.env.NODE_ENV === "development" ? error.message : undefined,
-//     });
-//   }
-// };
-
 // Update assignment status - Auto-activate when agent accepts
 export const updateAssignmentStatus = async (req, res) => {
   try {
@@ -607,7 +534,6 @@ export const updateAssignmentStatus = async (req, res) => {
       userId,
     });
 
-    // Validate status
     const validStatuses = ["accepted", "rejected", "completed", "active"];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({
@@ -617,7 +543,6 @@ export const updateAssignmentStatus = async (req, res) => {
       });
     }
 
-    // Find agent by user ID
     const agent = await Agent.findOne({ user: userId });
     if (!agent) {
       console.log("❌ Agent not found for user:", userId);
@@ -630,12 +555,10 @@ export const updateAssignmentStatus = async (req, res) => {
     console.log("✅ Agent found:", agent._id);
     console.log("📊 Total assignments for agent:", agent.assignedOwners.length);
 
-    // Find the assignment
     let assignment = agent.assignedOwners.id(assignmentId);
 
     if (!assignment) {
       console.log("⚠️ Assignment not found by .id(), trying to find by _id...");
-      // Try to find by string comparison
       assignment = agent.assignedOwners.find(
         (a) => a._id.toString() === assignmentId
       );
@@ -659,9 +582,7 @@ export const updateAssignmentStatus = async (req, res) => {
       currentStatus: assignment.status,
     });
 
-    // Update status
     if (status === "accepted") {
-      // When agent accepts, set status to 'active' immediately
       assignment.status = "active";
       assignment.acceptedDate = new Date();
       console.log("✅ Agent accepted - Assignment set to ACTIVE");
@@ -670,7 +591,6 @@ export const updateAssignmentStatus = async (req, res) => {
       assignment.rejectedDate = new Date();
       console.log("❌ Agent rejected assignment");
     } else if (status === "completed") {
-      // Only allow completion if assignment is active
       if (assignment.status !== "active") {
         return res.status(400).json({
           success: false,
@@ -687,7 +607,6 @@ export const updateAssignmentStatus = async (req, res) => {
     await agent.save();
     console.log("✅ Agent assignment status updated and saved");
 
-    // Also update owner's assignment status to match
     try {
       const owner = await Owner.findById(assignment.ownerId);
       if (owner && owner.assignedAgents) {
@@ -697,7 +616,6 @@ export const updateAssignmentStatus = async (req, res) => {
             a.propertyId.toString() === assignment.propertyId.toString()
         );
         if (ownerAssignment) {
-          // Set owner's status to match agent's status
           if (status === "accepted") {
             ownerAssignment.status = "active"; // Set to active when agent accepts
           } else {
@@ -716,7 +634,6 @@ export const updateAssignmentStatus = async (req, res) => {
       }
     } catch (ownerError) {
       console.error("⚠️ Error updating owner assignment:", ownerError.message);
-      // Don't fail the whole request if owner update fails
     }
 
     console.log("✅ Assignment status update completed successfully");

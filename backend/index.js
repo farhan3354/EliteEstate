@@ -17,6 +17,7 @@ import inquiryRoutes from "./routes/inquiryRoutes.js";
 import publicAgentRoutes from "./routes/publicAgentRoutes.js";
 import agentDashboardRoutes from "./routes/agentDashboardRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
+import locationRoutes from "./routes/locationRoutes.js";
 
 dotenv.config();
 
@@ -43,10 +44,21 @@ app.use("/api/v1/inquiries", inquiryRoutes);
 app.use("/api/v1/agents", publicAgentRoutes);
 app.use("/api/v1/agent-dashboard", agentDashboardRoutes);
 app.use("/api/v1/bookings", bookingRoutes);
+app.use("/api/v1/locations", locationRoutes);
 
 app.get("/", (req, res) => {
   res.json({
     message: "EliteEstate API is running...",
+  });
+});
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+  console.error("FATAL ERROR:", err);
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || "Internal Server Error",
+    error: process.env.NODE_ENV === "development" ? err : {}
   });
 });
 

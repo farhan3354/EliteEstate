@@ -41,7 +41,6 @@ const Agents = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4 max-w-7xl">
-        {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -59,8 +58,6 @@ const Agents = () => {
             <span>Join Our Team</span>
           </Link>
         </div>
-
-        {/* Search and Filter */}
         <div className="bg-white rounded-2xl p-6 shadow-lg mb-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="relative">
@@ -98,7 +95,6 @@ const Agents = () => {
           </div>
         </div>
 
-        {/* Agents Grid */}
         {loading ? (
           <div className="text-center py-12">Loading...</div>
         ) : (

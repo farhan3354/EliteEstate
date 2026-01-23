@@ -39,6 +39,7 @@ import AssignAgent from "./component/owner/AssignAgent";
 import PendingProperties from "./pages/admin/PendingProperties";
 import AdminCommissions from "./pages/admin/AdminCommissions";
 import AdminOwners from "./pages/admin/AdminOwners";
+import ManageLocations from "./pages/admin/ManageLocations";
 import NotFound from "./pages/NotFound";
 import EditProperty from "./pages/EditProperty";
 import OwnerInquiries from "./component/owner/OwnerInquiries";
@@ -109,6 +110,7 @@ export default function App() {
           <Route path="agents" element={<AdminAgents />} />
           <Route path="properties" element={<AdminProperties />} />
           <Route path="properties/pending" element={<PendingProperties />} />
+          <Route path="locations" element={<ManageLocations />} />
           <Route path="reviews" element={<AdminReviews />} />
           <Route path="commissions" element={<AdminCommissions />} />
         </Route>

@@ -2,7 +2,6 @@ import Property from "../models/property.js";
 
 export const createProperty = async (req, res) => {
   try {
-    console.log("🎯 Create Property API Called");
     console.log("📝 Request body keys:", Object.keys(req.body));
     console.log("📁 Files received:", req.files?.length || 0);
 
@@ -108,8 +107,11 @@ export const createProperty = async (req, res) => {
     if (req.body.isUrgent === "true") {
       propertyData.isUrgent = true;
     }
-    if (req.body.isVerified === "true") {
+    if (req.body.isVerified === "true" || req.body.isVerified === true) {
       propertyData.isVerified = true;
+    }
+    if (req.body.isFeatured === "true" || req.body.isFeatured === true) {
+      propertyData.isFeatured = true;
     }
 
     console.log(
@@ -129,24 +131,6 @@ export const createProperty = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("❌ Property creation failed:", error);
-    console.error("Error name:", error.name);
-    console.error("Error message:", error.message);
-    console.error("Error stack:", error.stack);
-    if (error.name === "ValidationError") {
-      const messages = Object.values(error.errors).map((err) => err.message);
-      return res.status(400).json({
-        success: false,
-        message: `Validation error: ${messages.join(", ")}`,
-        errors: messages,
-      });
-    }
-    if (error.code === 11000) {
-      return res.status(400).json({
-        success: false,
-        message: "Duplicate entry. This property already exists.",
-      });
-    }
     return res.status(500).json({
       success: false,
       message: "Internal server error. Please try again later.",
@@ -173,7 +157,6 @@ export const searchProperties = async (req, res) => {
 
     const query = { status: "active" };
 
-    // Text search
     if (q) {
       query.$or = [
         { title: { $regex: q, $options: "i" } },
@@ -182,23 +165,19 @@ export const searchProperties = async (req, res) => {
       ];
     }
 
-    // Basic filters
     if (purpose) query.purpose = purpose;
     if (category && category !== "all") query.category = category;
 
-    // Location filters
     if (city) query["location.city"] = { $regex: city, $options: "i" };
     if (area && area !== "any")
       query["location.area"] = { $regex: area, $options: "i" };
 
-    // Price filter
     if (minPrice || maxPrice) {
       query.price = {};
       if (minPrice) query.price.$gte = Number(minPrice);
       if (maxPrice) query.price.$lte = Number(maxPrice);
     }
 
-    // Bedrooms filter
     if (bedrooms && bedrooms !== "any") {
       if (bedrooms === "4") {
         query.bedrooms = { $gte: 4 };
@@ -207,13 +186,11 @@ export const searchProperties = async (req, res) => {
       }
     }
 
-    // Furnishing filter
     if (furnishing && furnishing !== "any") {
       query.furnishing = furnishing;
     }
 
-    // Sorting
-    let sortOption = { createdAt: -1 }; // Default: newest first
+    let sortOption = { createdAt: -1 };
 
     if (sortBy === "price-low") {
       sortOption = { price: 1 };
@@ -228,10 +205,9 @@ export const searchProperties = async (req, res) => {
       .sort(sortOption)
       .limit(50);
 
-    // Get filter counts for UI
     const filters = await getFilterCounts(query);
 
-    res.status(200).json({
+   return res.status(200).json({
       success: true,
       count: properties.length,
       data: {
@@ -241,7 +217,7 @@ export const searchProperties = async (req, res) => {
     });
   } catch (error) {
     console.error("Search properties error:", error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Failed to search properties",
     });
@@ -251,18 +227,14 @@ export const searchProperties = async (req, res) => {
 // Get filter counts for UI
 const getFilterCounts = async (baseQuery) => {
   try {
-    // Clone base query to avoid modifying it
     const query = { ...baseQuery };
 
-    // Remove pagination/sorting from base query for counts
     delete query.limit;
     delete query.skip;
     delete query.sort;
 
-    // Get all properties matching the base filters
     const allProperties = await Property.find(query);
 
-    // Category counts
     const categories = await Property.aggregate([
       { $match: query },
       {
@@ -274,8 +246,6 @@ const getFilterCounts = async (baseQuery) => {
       { $sort: { count: -1 } },
     ]);
 
-    // Location counts
-    // Location counts - return array of objects with value and count
     const locations = await Property.aggregate([
       { $match: query },
       {
@@ -284,10 +254,9 @@ const getFilterCounts = async (baseQuery) => {
           count: { $sum: 1 },
         },
       },
-      { $match: { _id: { $ne: null, $ne: "" } } }, // Filter out null/empty values
+      { $match: { _id: { $ne: null, $ne: "" } } },
       { $sort: { count: -1 } },
     ]);
-    // Price range
     const priceStats = await Property.aggregate([
       { $match: query },
       {
@@ -346,7 +315,6 @@ export const getProperties = async (req, res) => {
 
     const query = { status: "active" };
 
-    // Apply all filters
     if (listedBy) query.listedBy = listedBy;
     if (purpose) query.purpose = purpose;
     if (category && category !== "all") query.category = category;
@@ -371,7 +339,6 @@ export const getProperties = async (req, res) => {
       query.furnishing = furnishing;
     }
 
-    // Sorting
     let sortOption = { createdAt: -1 };
 
     if (sortBy === "price-low") {
@@ -390,7 +357,7 @@ export const getProperties = async (req, res) => {
 
     const total = await Property.countDocuments(query);
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       count: properties.length,
       total,
@@ -400,7 +367,7 @@ export const getProperties = async (req, res) => {
     });
   } catch (error) {
     console.error("Get properties error:", error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Failed to fetch properties",
     });
@@ -410,7 +377,8 @@ export const getProperties = async (req, res) => {
 // Get single property
 export const getProperty = async (req, res) => {
   try {
-    const property = await Property.findById(req.params.id).populate(
+    const {id} = req.params;
+    const property = await Property.findById(id).populate(
       "listedBy",
       "name email phone"
     );
@@ -422,7 +390,7 @@ export const getProperty = async (req, res) => {
       });
     }
 
-    res.status(200).json({
+   return res.status(200).json({
       success: true,
       data: {
         property,
@@ -430,7 +398,7 @@ export const getProperty = async (req, res) => {
     });
   } catch (error) {
     console.error("Get property error:", error);
-    res.status(500).json({
+   return res.status(500).json({
       success: false,
       message: "Failed to fetch property",
     });
@@ -440,7 +408,8 @@ export const getProperty = async (req, res) => {
 // Update property
 export const updateProperty = async (req, res) => {
   try {
-    const property = await Property.findById(req.params.id);
+    const {id} =req.params;
+    const property = await Property.findById(id);
 
     if (!property) {
       return res.status(404).json({
@@ -449,15 +418,13 @@ export const updateProperty = async (req, res) => {
       });
     }
 
-    // Check if user owns the property
-    if (property.listedBy.toString() !== req.user.id) {
+    if (property.listedBy.toString() !== req.user?.id && req.user?.role !== "admin") {
       return res.status(403).json({
         success: false,
         message: "Not authorized to update this property",
       });
     }
 
-    // Update basic fields - ONLY FIELDS THAT EXIST IN SCHEMA
     const updatableFields = [
       "title",
       "description",
@@ -471,6 +438,7 @@ export const updateProperty = async (req, res) => {
       "furnishing",
       "isUrgent",
       "isVerified",
+      "isFeatured",
       "status",
       "areaUnit",
     ];
@@ -481,7 +449,6 @@ export const updateProperty = async (req, res) => {
       }
     });
 
-    // Update location
     if (req.body.location) {
       try {
         property.location = JSON.parse(req.body.location);
@@ -490,7 +457,6 @@ export const updateProperty = async (req, res) => {
       }
     }
 
-    // Update contact info
     if (req.body.contactInfo) {
       try {
         property.contactInfo = JSON.parse(req.body.contactInfo);
@@ -499,7 +465,6 @@ export const updateProperty = async (req, res) => {
       }
     }
 
-    // Handle new images
     if (req.files && req.files.length > 0) {
       const newImages = req.files.map((file) => file.path);
       property.images = [...property.images, ...newImages];
@@ -507,7 +472,7 @@ export const updateProperty = async (req, res) => {
 
     await property.save();
 
-    res.status(200).json({
+   return res.status(200).json({
       success: true,
       message: "Property updated successfully",
       data: {
@@ -515,8 +480,7 @@ export const updateProperty = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Update property error:", error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Failed to update property",
     });
@@ -526,7 +490,8 @@ export const updateProperty = async (req, res) => {
 // Delete property
 export const deleteProperty = async (req, res) => {
   try {
-    const property = await Property.findById(req.params.id);
+    const {id}= req.params;
+    const property = await Property.findById(id);
 
     if (!property) {
       return res.status(404).json({
@@ -535,7 +500,6 @@ export const deleteProperty = async (req, res) => {
       });
     }
 
-    // Check if user owns the property
     if (property.listedBy.toString() !== req.user.id) {
       return res.status(403).json({
         success: false,
@@ -545,13 +509,13 @@ export const deleteProperty = async (req, res) => {
 
     await property.deleteOne();
 
-    res.status(200).json({
+   return res.status(200).json({
       success: true,
       message: "Property deleted successfully",
     });
   } catch (error) {
     console.error("Delete property error:", error);
-    res.status(500).json({
+   return res.status(500).json({
       success: false,
       message: "Failed to delete property",
     });
@@ -565,7 +529,7 @@ export const getUserProperties = async (req, res) => {
       "-createdAt"
     );
 
-    res.status(200).json({
+   return res.status(200).json({
       success: true,
       count: properties.length,
       data: {
@@ -574,7 +538,7 @@ export const getUserProperties = async (req, res) => {
     });
   } catch (error) {
     console.error("Get user properties error:", error);
-    res.status(500).json({
+   return res.status(500).json({
       success: false,
       message: "Failed to fetch user properties",
     });
@@ -587,7 +551,6 @@ export const updatePropertyStatus = async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
-    // Validate status
     const validStatuses = [
       "active",
       "sold",
@@ -612,7 +575,6 @@ export const updatePropertyStatus = async (req, res) => {
       });
     }
 
-    // Check if user owns the property or is admin
     const user = req.user;
     const isOwner = property.listedBy.toString() === user.id;
     const isAdmin = user.role === "admin";
@@ -624,10 +586,8 @@ export const updatePropertyStatus = async (req, res) => {
       });
     }
 
-    // Update status
     property.status = status;
 
-    // Add status change history
     if (!property.statusHistory) {
       property.statusHistory = [];
     }
@@ -641,7 +601,7 @@ export const updatePropertyStatus = async (req, res) => {
 
     await property.save();
 
-    res.status(200).json({
+  return  res.status(200).json({
       success: true,
       message: `Property status updated to ${status}`,
       data: {
@@ -650,7 +610,7 @@ export const updatePropertyStatus = async (req, res) => {
     });
   } catch (error) {
     console.error("Update property status error:", error);
-    res.status(500).json({
+   return res.status(500).json({
       success: false,
       message: "Failed to update property status",
     });
@@ -658,8 +618,104 @@ export const updatePropertyStatus = async (req, res) => {
 };
 
 // Get all properties for admin (with all statuses)
+// export const getAdminProperties = async (req, res) => {
+//   try {
+//     const {
+//       page = 1,
+//       limit = 10,
+//       status,
+//       purpose,
+//       category,
+//       search,
+//       sortBy = "createdAt",
+//       sortOrder = "desc",
+//     } = req.query;
+
+//     console.log("DEBUG: getAdminProperties started with query:", req.query);
+//     const query = {};
+
+//     if (status && status !== "all") {
+//       query.status = status;
+//     }
+
+//     if (purpose && purpose !== "all") {
+//       query.purpose = purpose;
+//     }
+
+//     if (category && category !== "all") {
+//       query.category = category;
+//     }
+//     if (search) {
+//       query.$or = [
+//         { title: { $regex: search, $options: "i" } },
+//         { description: { $regex: search, $options: "i" } },
+//         { "location.address": { $regex: search, $options: "i" } },
+//         { "location.area": { $regex: search, $options: "i" } },
+//       ];
+//     }
+
+//     const skip = (page - 1) * limit;
+
+//     console.log("DEBUG: Finding properties with query:", JSON.stringify(query));
+//     const properties = await Property.find(query)
+//       .populate({
+//         path: "listedBy",
+//         select: "name email phone",
+//       })
+//       .skip(skip)
+//       .limit(parseInt(limit))
+//       .sort({ [sortBy]: sortOrder === "desc" ? -1 : 1 });
+
+//     console.log(`DEBUG: Found ${properties.length} properties`);
+
+//     const total = await Property.countDocuments(query);
+
+//     const totalProperties = await Property.countDocuments();
+//     const activeProperties = await Property.countDocuments({
+//       status: "active",
+//     });
+//     const soldProperties = await Property.countDocuments({ status: "sold" });
+//     const rentedProperties = await Property.countDocuments({
+//       status: "rented",
+//     });
+//     const inactiveProperties = await Property.countDocuments({
+//       status: "inactive",
+//     });
+
+//     return res.status(200).json({
+//       success: true,
+//       data: {
+//         properties,
+//         pagination: {
+//           page: parseInt(page),
+//           limit: parseInt(limit),
+//           total,
+//           pages: Math.ceil(total / limit),
+//         },
+//         stats: {
+//           totalProperties,
+//           activeProperties,
+//           soldProperties,
+//           rentedProperties,
+//           inactiveProperties,
+//         },
+//       },
+//     });
+//   } catch (error) {
+//     console.error("DEBUG FATAL: getAdminProperties error:", error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "Error fetching properties",
+//       details: error.message,
+//       stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
+//     });
+//   }
+// };
+// Get all properties for admin (with all statuses)
 export const getAdminProperties = async (req, res) => {
   try {
+    console.log("🟢 DEBUG: getAdminProperties started");
+    
     const {
       page = 1,
       limit = 10,
@@ -667,73 +723,81 @@ export const getAdminProperties = async (req, res) => {
       purpose,
       category,
       search,
-      sortBy = "createdAt",
-      sortOrder = "desc",
+      sortBy = "-createdAt",
     } = req.query;
 
+    console.log("📊 Query Parameters:", {
+      page, limit, status, purpose, category, search, sortBy
+    });
+
+    // Build query
     const query = {};
 
-    // Filter by status
+    // Status filter
     if (status && status !== "all") {
       query.status = status;
     }
 
-    // Filter by purpose
+    // Purpose filter (sale/rent)
     if (purpose && purpose !== "all") {
       query.purpose = purpose;
     }
 
-    // Filter by category
+    // Category filter
     if (category && category !== "all") {
       query.category = category;
     }
 
-    // Search functionality
+    // Search filter
     if (search) {
       query.$or = [
         { title: { $regex: search, $options: "i" } },
         { description: { $regex: search, $options: "i" } },
         { "location.address": { $regex: search, $options: "i" } },
         { "location.area": { $regex: search, $options: "i" } },
+        { "location.city": { $regex: search, $options: "i" } },
       ];
     }
 
-    const skip = (page - 1) * limit;
+    console.log("🔍 Final Query:", JSON.stringify(query, null, 2));
 
-    // Get properties with populated user data
+    // Calculate pagination
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    // Fetch properties with pagination
     const properties = await Property.find(query)
       .populate({
         path: "listedBy",
-        select: "name email phone",
+        select: "name email phone profileImage",
       })
       .skip(skip)
       .limit(parseInt(limit))
-      .sort({ [sortBy]: sortOrder === "desc" ? -1 : 1 });
+      .sort(sortBy);
 
+    console.log(`✅ Found ${properties.length} properties`);
+
+    // Get total count
     const total = await Property.countDocuments(query);
 
-    // Get property statistics
+    // Get statistics
     const totalProperties = await Property.countDocuments();
-    const activeProperties = await Property.countDocuments({
-      status: "active",
-    });
+    const activeProperties = await Property.countDocuments({ status: "active" });
     const soldProperties = await Property.countDocuments({ status: "sold" });
-    const rentedProperties = await Property.countDocuments({
-      status: "rented",
-    });
-    const inactiveProperties = await Property.countDocuments({
-      status: "inactive",
+    const rentedProperties = await Property.countDocuments({ status: "rented" });
+    const inactiveProperties = await Property.countDocuments({ 
+      status: "inactive" 
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
+      message: "Admin properties fetched successfully",
       data: {
         properties,
         pagination: {
           page: parseInt(page),
           limit: parseInt(limit),
           total,
-          pages: Math.ceil(total / limit),
+          pages: Math.ceil(total / parseInt(limit)),
         },
         stats: {
           totalProperties,
@@ -744,15 +808,21 @@ export const getAdminProperties = async (req, res) => {
         },
       },
     });
+
   } catch (error) {
-    console.error("Get admin properties error:", error);
-    res.status(500).json({
+    console.error("❌ ERROR in getAdminProperties:", error);
+    console.error("Error details:", error.message);
+    console.error("Error stack:", error.stack);
+    
+    return res.status(500).json({
       success: false,
-      message: "Error fetching properties",
-      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+      message: "Error fetching admin properties",
+      error: error.message,
+      stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
     });
   }
 };
+
 // Approve property
 export const approveProperty = async (req, res) => {
   try {
@@ -782,14 +852,14 @@ export const approveProperty = async (req, res) => {
 
     await property.save();
 
-    res.status(200).json({
+   return res.status(200).json({
       success: true,
       message: "Property approved successfully",
       data: { property },
     });
   } catch (error) {
     console.error("Approve property error:", error);
-    res.status(500).json({
+   return res.status(500).json({
       success: false,
       message: "Failed to approve property",
     });
@@ -826,14 +896,14 @@ export const rejectProperty = async (req, res) => {
 
     await property.save();
 
-    res.status(200).json({
+   return res.status(200).json({
       success: true,
       message: "Property rejected successfully",
       data: { property },
     });
   } catch (error) {
     console.error("Reject property error:", error);
-    res.status(500).json({
+   return res.status(500).json({
       success: false,
       message: "Failed to reject property",
     });
@@ -847,14 +917,14 @@ export const getPendingProperties = async (req, res) => {
       .populate("listedBy", "name email phone")
       .sort("-createdAt");
 
-    res.status(200).json({
+   return res.status(200).json({
       success: true,
       count: properties.length,
       data: { properties },
     });
   } catch (error) {
     console.error("Get pending properties error:", error);
-    res.status(500).json({
+   return res.status(500).json({
       success: false,
       message: "Failed to fetch pending properties",
     });

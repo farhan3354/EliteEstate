@@ -6,7 +6,6 @@ import {
 
 const router = express.Router();
 
-// Public routes for finding agents
 router.get("/", getVerifiedAgents);
 router.get("/:id", getAgentDetails);
 

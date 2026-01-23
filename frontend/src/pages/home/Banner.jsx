@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiSearch, FiMapPin, FiHome, FiChevronDown } from "react-icons/fi";
+import { locationAPI } from "../../services/api";
 
 const Banner = () => {
   const navigate = useNavigate();
+  const [locations, setLocations] = useState([]);
   const [searchData, setSearchData] = useState({
     category: "",
     location: "",
@@ -20,18 +22,19 @@ const Banner = () => {
     { value: "land", name: "Land" },
   ];
 
-  const popularLocations = [
-    "Al Reem Island",
-    "Yas Island",
-    "Saadiyat Island",
-    "Al Raha Beach",
-    "Khalifa City",
-    "Mohammed Bin Zayed City",
-    "Al Mushrif",
-    "Al Bateen",
-    "Corniche Area",
-    "Tourist Club Area",
-  ];
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        const response = await locationAPI.getAll();
+        if (response.data.success) {
+          setLocations(response.data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching locations for banner:", error);
+      }
+    };
+    fetchLocations();
+  }, []);
 
   const handleSearch = () => {
     navigate("/properties", {
@@ -132,9 +135,9 @@ const Banner = () => {
                     className="w-full pl-10 pr-4 py-4 border border-gray-300 rounded-xl text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white font-medium"
                   >
                     <option value="">All Locations</option>
-                    {popularLocations.map((location) => (
-                      <option key={location} value={location}>
-                        {location}
+                    {locations.map((loc) => (
+                      <option key={loc._id} value={loc.name}>
+                        {loc.name}
                       </option>
                     ))}
                   </select>
