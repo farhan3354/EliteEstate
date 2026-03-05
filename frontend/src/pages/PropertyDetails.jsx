@@ -35,6 +35,22 @@ const PropertyDetails = () => {
   const [favoriteLoading, setFavoriteLoading] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
   const [showBookModal, setShowBookModal] = useState(false);
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await api.get("/categories");
+      if (response.data.success) {
+        setCategories(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
 
   const checkFavoriteStatus = useCallback(async () => {
     if (!token || !id) return;
@@ -168,7 +184,11 @@ const PropertyDetails = () => {
     return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
   };
 
-  const getCategoryLabel = (category) => {
+  const getCategoryLabel = (categoryValue) => {
+    const foundCat = categories.find(c => c.value === categoryValue);
+    if (foundCat) return foundCat.name;
+    
+    // Fallback
     const labels = {
       apartments: "Apartment",
       villas: "Villa",
@@ -179,7 +199,7 @@ const PropertyDetails = () => {
       warehouses: "Warehouse",
       buildings: "Building",
     };
-    return labels[category] || category;
+    return labels[categoryValue] || categoryValue;
   };
 
   if (loading) {
@@ -248,7 +268,7 @@ const PropertyDetails = () => {
                 }
                 className="hover:text-blue-500 transition duration-200"
               >
-                {getCategoryLabel(property.category)}s for Sale
+                {getCategoryLabel(property.category)} for Sale
               </button>
               <span>›</span>
               <span className="text-gray-900 font-medium">
@@ -302,26 +322,23 @@ const PropertyDetails = () => {
                     <button
                       onClick={toggleFavorite}
                       disabled={favoriteLoading}
-                      className={`p-2 rounded-full shadow-lg transition duration-200 ${
+                      className={`p-3 rounded-2xl shadow-xl backdrop-blur-md transition-all duration-300 border border-white/20 ${
                         isFavorite
-                          ? "bg-red-500 text-white hover:bg-red-600"
-                          : "bg-white text-gray-600 hover:bg-gray-50 hover:text-red-500"
+                          ? "bg-red-500/90 text-white"
+                          : "bg-white/90 text-gray-700 hover:text-red-500"
                       } ${favoriteLoading ? "opacity-50 cursor-not-allowed" : ""}`}
                     >
                       <FiHeart
-                        className={`w-5 h-5 transition-all ${
+                        className={`w-6 h-6 transition-all ${
                           isFavorite ? "fill-current" : ""
-                        } ${favoriteLoading ? "animate-pulse" : ""}`}
+                        }`}
                       />
                     </button>
                     <button
                       onClick={shareProperty}
-                      className="bg-white text-gray-600 hover:bg-gray-50 p-2 rounded-full shadow-lg transition duration-200"
+                      className="bg-white/90 backdrop-blur-md text-gray-700 hover:text-blue-500 p-3 rounded-2xl shadow-xl border border-white/20 transition-all duration-300"
                     >
-                      <FiShare2 className="w-5 h-5" />
-                    </button>
-                    <button className="bg-white text-gray-600 hover:bg-gray-50 p-2 rounded-full shadow-lg transition duration-200">
-                      <FiFlag className="w-5 h-5" />
+                      <FiShare2 className="w-6 h-6" />
                     </button>
                   </div>
                   <div className="absolute bottom-4 left-4 bg-black bg-opacity-70 text-white px-3 py-1 rounded-full text-sm">

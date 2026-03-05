@@ -24,7 +24,14 @@ export const propertyAPI = {
       headers: { "Content-Type": "multipart/form-data" },
     }),
   delete: (id) => api.delete(`/properties/${id}`),
-  getFeatured: () => api.get("/properties"),
+  getFeatured: () => api.get("/properties/featured"),
+  // Category methods
+  getCategories: () => api.get("/categories"),
+  createCategory: (data) => {
+    const config = data instanceof FormData ? { headers: { "Content-Type": "multipart/form-data" } } : {};
+    return api.post("/categories", data, config);
+  },
+  deleteCategory: (id) => api.delete(`/categories/${id}`),
   getUserProperties: () =>
     api.get("/properties/user/my-properties"),
   search: (params) =>
@@ -75,6 +82,7 @@ export const bookingAPI = {
   create: (data) => api.post("/bookings", data),
   getMyBookings: () => api.get("/bookings/my-bookings"),
   getLandlordBookings: () => api.get("/bookings/landlord-bookings"),
+  getAllAdminBookings: () => api.get("/bookings/all-bookings"),
   updateStatus: (id, status) => api.put(`/bookings/${id}/status`, { status }),
 };
 
@@ -115,4 +123,9 @@ export const locationAPI = {
       headers: { "Content-Type": "multipart/form-data" },
     }),
   delete: (id) => api.delete(`/locations/${id}`),
+};
+
+// Admin APIs
+export const adminAPI = {
+  getStats: () => api.get("/admin/stats/overview"),
 };

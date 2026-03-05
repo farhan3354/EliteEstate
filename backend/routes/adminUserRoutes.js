@@ -6,6 +6,7 @@ import {
   deleteRegularUser,
   createRegularUser,
 } from "../controllers/adminUserController.js";
+import { getDashboardOverview } from "../controllers/adminController.js";
 import { protect, adminMiddleware } from "../middleware/auth.js";
 
 const router = express.Router();
@@ -13,6 +14,7 @@ const router = express.Router();
 router.use(protect, adminMiddleware);
 
 router.get("/regular-users", getAllRegularUsers);
+router.get("/stats/overview", getDashboardOverview);
 router.get("/regular-users/:id", getRegularUserById);
 router.post("/regular-users", createRegularUser);
 router.put("/regular-users/:id/status", updateRegularUserStatus);

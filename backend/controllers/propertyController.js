@@ -930,3 +930,57 @@ export const getPendingProperties = async (req, res) => {
     });
   }
 };
+// Get featured properties
+export const getFeaturedProperties = async (req, res) => {
+  try {
+    const properties = await Property.find({ isFeatured: true, status: "active" })
+      .populate("listedBy", "name email phone profileImage")
+      .limit(10)
+      .sort("-createdAt");
+
+    return res.status(200).json({
+      success: true,
+      count: properties.length,
+      data: { properties },
+    });
+  } catch (error) {
+    console.error("Get featured properties error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch featured properties",
+    });
+  }
+};
+
+// Get property categories with counts
+export const getPropertyCategories = async (req, res) => {
+  try {
+    const categories = await Property.aggregate([
+      { $match: { status: "active" } },
+      {
+        $group: {
+          _id: "$category",
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { count: -1 } },
+    ]);
+
+    const formattedCategories = categories.map((cat) => ({
+      value: cat._id,
+      name: cat._id.charAt(0).toUpperCase() + cat._id.slice(1),
+      count: cat.count,
+    }));
+
+    return res.status(200).json({
+      success: true,
+      data: formattedCategories,
+    });
+  } catch (error) {
+    console.error("Get property categories error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch property categories",
+    });
+  }
+};

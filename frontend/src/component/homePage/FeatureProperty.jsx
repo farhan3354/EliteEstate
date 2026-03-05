@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FiHeart, FiMapPin, FiArrowRight } from "react-icons/fi";
-import api from "../../utils/routeapi";
 import { propertyAPI } from "../../services/api";
 import { useSelector } from "react-redux";
 
@@ -34,21 +33,19 @@ const FeaturedProperties = () => {
   const fetchFeaturedProperties = async () => {
     try {
       setLoading(true);
-      let response;
-            try {
-        response = await api.getFeatured();
-        // response = await api.get("/properties");
-      } catch (featuredError) {
-        response = await api.get("/properties?limit=6&sort=-createdAt");
-      }
+      const response = await propertyAPI.getFeatured();
       
       let properties = [];
       if (response.data.success) {
         properties = response.data.data?.properties || [];
-      } else if (response.data.data) {
-        properties = response.data.data.properties || response.data.data || [];
-      } else if (Array.isArray(response.data)) {
-        properties = response.data;
+      }
+      
+      // Fallback if no featured properties
+      if (properties.length === 0) {
+        const fallbackResponse = await propertyAPI.search({ limit: 6, sort: "-createdAt" });
+        if (fallbackResponse.data.success) {
+          properties = fallbackResponse.data.data?.properties || [];
+        }
       }
       
       setFeaturedProperties(properties);
@@ -71,14 +68,13 @@ const FeaturedProperties = () => {
     try {
       const favoriteStatusPromises = featuredProperties.map(async (property) => {
         try {
-          const response = await api.get(`/favorites/check/${property.id}`);
+          const response = await propertyAPI.checkFavorite(property._id);
           return { 
-            propertyId: property.id, 
+            propertyId: property._id, 
             isFavorite: response.data.data?.isFavorite || false 
           };
         } catch (error) {
-          console.error(`Error checking favorite for property ${property.id}:`, error);
-          return { propertyId: property.id, isFavorite: false };
+          return { propertyId: property._id, isFavorite: false };
         }
       });
       
@@ -110,18 +106,15 @@ const FeaturedProperties = () => {
       setFavoriteLoading(prev => ({ ...prev, [propertyId]: true }));
       
       if (isFavorite[propertyId]) {
-        // Remove from favorites
-        await api.delete(`/favorites/${propertyId}`);
+        await propertyAPI.removeFavorite(propertyId);
         setIsFavorite(prev => ({ ...prev, [propertyId]: false }));
       } else {
-        // Add to favorites
-        await api.post(`/favorites/${propertyId}`);
+        await propertyAPI.addFavorite(propertyId);
         setIsFavorite(prev => ({ ...prev, [propertyId]: true }));
       }
     } catch (error) {
       console.error("Error toggling favorite:", error);
-      const errorMessage = error.response?.data?.message || "Failed to update wishlist";
-      alert(errorMessage);
+      alert(error.response?.data?.message || "Failed to update wishlist");
     } finally {
       setFavoriteLoading(prev => ({ ...prev, [propertyId]: false }));
     }
@@ -133,7 +126,8 @@ const FeaturedProperties = () => {
 
   const scrollToIndex = (index) => {
     if (carouselRef.current && featuredProperties.length > 0) {
-      const cardWidth = 320;
+      const containerWidth = carouselRef.current.clientWidth;
+      const cardWidth = containerWidth < 768 ? containerWidth : containerWidth / 3;
       const scrollLeft = index * cardWidth;
       carouselRef.current.scrollTo({
         left: scrollLeft,
@@ -145,54 +139,19 @@ const FeaturedProperties = () => {
 
   const nextSlide = () => {
     if (featuredProperties.length === 0) return;
-    const cardsPerView = window.innerWidth < 768 ? 1 : 2;
-    const maxIndex = Math.ceil(featuredProperties.length / cardsPerView) - 1;
+    const cardsPerView = window.innerWidth < 768 ? 1 : 3;
+    const maxIndex = Math.max(0, featuredProperties.length - cardsPerView);
     const nextIndex = currentIndex >= maxIndex ? 0 : currentIndex + 1;
     scrollToIndex(nextIndex);
   };
 
   const prevSlide = () => {
     if (featuredProperties.length === 0) return;
-    const cardsPerView = window.innerWidth < 768 ? 1 : 2;
-    const maxIndex = Math.ceil(featuredProperties.length / cardsPerView) - 1;
+    const cardsPerView = window.innerWidth < 768 ? 1 : 3;
+    const maxIndex = Math.max(0, featuredProperties.length - cardsPerView);
     const prevIndex = currentIndex === 0 ? maxIndex : currentIndex - 1;
     scrollToIndex(prevIndex);
   };
-
-  const HeartIcon = ({ filled, loading, onClick }) => (
-    <div className="relative">
-      <svg
-        viewBox="0 0 40 40"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        onClick={onClick}
-        className={`cursor-pointer transition-all duration-200 ${loading ? 'opacity-50' : ''}`}
-        style={{ width: "24px", height: "24px" }}
-      >
-        <rect
-          x="6"
-          y="6"
-          width="28"
-          height="28"
-          rx="6"
-          fill="white"
-          fillOpacity="0.6"
-        ></rect>
-        <path
-          opacity="1"
-          d="M28.172 12.8791C27.112 11.8163 25.7068 11.1676 24.2103 11.0502C22.7139 10.9329 21.2248 11.3545 20.012 12.2391C18.7397 11.2927 17.156 10.8636 15.5799 11.0381C14.0038 11.2126 12.5524 11.9778 11.518 13.1797C10.4835 14.3815 9.94282 15.9306 10.0048 17.5151C10.0668 19.0996 10.7268 20.6017 11.852 21.7191L18.062 27.9391C18.582 28.4509 19.2824 28.7377 20.012 28.7377C20.7416 28.7377 21.442 28.4509 21.962 27.9391L28.172 21.7191C29.3396 20.5443 29.9949 18.9553 29.9949 17.2991C29.9949 15.6428 29.3396 14.0538 28.172 12.8791Z"
-          fill={filled ? "#ff3b30" : "transparent"}
-          stroke={filled ? "#ff3b30" : "#6b7280"}
-          strokeWidth="1.5"
-        ></path>
-      </svg>
-      {loading && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
-        </div>
-      )}
-    </div>
-  );
 
   const PropertyCard = ({ property }) => {
     const formatPrice = (price) => {
@@ -200,129 +159,87 @@ const FeaturedProperties = () => {
       return `AED ${price?.toLocaleString() || "0"}`;
     };
 
-    const formatTimeAgo = (dateString) => {
-      if (!dateString) return "Recently";
-      try {
-        const date = new Date(dateString);
-        const now = new Date();
-        const diffMs = now - date;
-        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-        
-        if (diffHours < 1) return "Just now";
-        if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-        
-        const diffDays = Math.floor(diffHours / 24);
-        if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-        
-        const diffWeeks = Math.floor(diffDays / 7);
-        return `${diffWeeks} week${diffWeeks > 1 ? 's' : ''} ago`;
-      } catch (error) {
-        return "Recently";
-      }
-    };
-
-    const getCategoryLabel = (category) => {
-      const labels = {
-        apartments: "Apartment",
-        villas: "Villa",
-        townhouses: "Townhouse",
-        commercial: "Commercial",
-        land: "Land",
-        rooms: "Room",
-        warehouses: "Warehouse",
-        buildings: "Building",
-      };
-      return labels[category] || category;
-    };
-
     return (
       <div
-        className="bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer border border-gray-200 overflow-hidden flex-shrink-0 w-80"
+        className="flex-shrink-0 w-full md:w-1/3 px-4 mb-8"
         onClick={() => handlePropertyClick(property._id)}
       >
-        <div className="relative h-48 overflow-hidden">
-          <img
-            src={property.images?.[0] || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800"}
-            alt={property.title}
-            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-          />
-          <div className="absolute top-3 right-3">
-            <div
-              className="favorite-container bg-white bg-opacity-80 rounded-full p-1 hover:bg-opacity-100 transition-all duration-200"
+        <div className="group bg-white rounded-[2rem] overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 border border-gray-100 cursor-pointer relative">
+           {/* Image Section */}
+          <div className="relative h-64 overflow-hidden">
+            <img
+              src={property.images?.[0] || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800"}
+              alt={property.title}
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+            />
+             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+            
+             <button 
               onClick={(e) => toggleFavorite(e, property._id)}
+              className="absolute top-4 right-4 z-20 w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/30 hover:bg-white hover:text-red-500 transition-all duration-300"
             >
-              <HeartIcon 
-                filled={isFavorite[property._id]} 
-                loading={favoriteLoading[property._id]}
-              />
-            </div>
-          </div>
-          <div className="absolute bottom-3 left-3 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded">
-            {property.images?.length || 0} Photos
-          </div>
-          
-          <div className="absolute top-3 left-3 flex flex-col gap-1">
-            {property.isUrgent && (
-              <span className="bg-orange-500 text-white px-2 py-1 rounded text-xs font-semibold uppercase tracking-wide">
-                Urgent
-              </span>
-            )}
-            {property.isVerified && (
-              <span className="bg-green-500 text-white px-2 py-1 rounded text-xs font-semibold">
-                Verified
-              </span>
-            )}
-          </div>
-        </div>
+              <FiHeart className={`w-5 h-5 ${isFavorite[property._id] ? 'fill-red-500 text-red-500' : 'text-white'}`} />
+            </button>
 
-        <div className="p-4">
-          <div className="flex justify-between items-start mb-2">
-            <div className="flex-1">
-              <span className="text-lg font-bold text-gray-800">
-                {formatPrice(property.price)}
-              </span>
-              <p className="text-gray-600 text-xs mt-1 capitalize">
-                For {property.purpose === "rent" ? "Rent" : "Sale"}
-              </p>
-              <h3 className="font-semibold text-gray-800 text-sm mt-1 line-clamp-2">
-                {property.title}
-              </h3>
-              <p className="text-gray-600 text-sm mt-1">
-                {getCategoryLabel(property.category)} •{" "}
-                {property.bedrooms > 0
-                  ? `${property.bedrooms} Bed${property.bedrooms > 1 ? "s" : ""} • `
-                  : ""}
-                {property.bathrooms || 0} Bath{property.bathrooms !== 1 ? "s" : ""} •{" "}
-                {property.area?.toLocaleString() || 0} {property.areaUnit || "SqFt"}
-              </p>
+            <div className="absolute top-4 left-4 flex flex-col gap-2">
+               <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase">
+                 {property.purpose === 'rent' ? 'For Rent' : 'For Sale'}
+               </span>
+               {property.isFeatured && (
+                 <span className="bg-amber-400 text-black px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase">
+                   Featured
+                 </span>
+               )}
             </div>
-            <div className="flex-shrink-0 ml-2">
-              {property.listedBy?.profileImage ? (
-                <img
-                  src={property.listedBy.profileImage}
-                  alt={property.listedBy.name}
-                  className="w-10 h-10 rounded-full object-cover border border-gray-200"
-                />
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center border border-gray-200">
-                  <span className="text-blue-600 font-bold">
-                    {property.listedBy?.name?.charAt(0) || "P"}
-                  </span>
-                </div>
-              )}
+
+            <div className="absolute bottom-4 left-4 right-4 flex justify-between items-center text-white">
+               <span className="text-xl font-bold tracking-tight">{formatPrice(property.price)}</span>
+               <div className="flex items-center space-x-1 text-xs font-medium bg-black/40 backdrop-blur-sm px-2 py-1 rounded-lg">
+                  <FiMapPin className="w-3 h-3" />
+                  <span className="truncate max-w-[100px]">{property.location?.area || property.location?.city || "Abu Dhabi"}</span>
+               </div>
             </div>
           </div>
 
-          <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-100">
-            <div className="flex items-center text-gray-600 text-sm">
-              <FiMapPin className="w-3 h-3 mr-1 flex-shrink-0" />
-              <span className="truncate max-w-[120px]">
-                {property.location?.area || property.location?.city || "Abu Dhabi"}
-              </span>
+          {/* Content Section */}
+          <div className="p-6">
+            <h3 className="text-lg font-bold text-gray-900 line-clamp-1 mb-2 group-hover:text-blue-600 transition-colors">
+              {property.title}
+            </h3>
+            
+            <div className="flex items-center space-x-4 text-gray-500 text-sm mb-6 pb-6 border-b border-gray-100">
+               <div className="flex items-center space-x-1">
+                  <span className="font-bold text-gray-900">{property.bedrooms || 0}</span>
+                  <span>Beds</span>
+               </div>
+               <div className="flex items-center space-x-1">
+                  <span className="font-bold text-gray-900">{property.bathrooms || 0}</span>
+                  <span>Baths</span>
+               </div>
+               <div className="flex items-center space-x-1">
+                  <span className="font-bold text-gray-900">{property.area?.toLocaleString() || 0}</span>
+                  <span>Sqft</span>
+               </div>
             </div>
-            <span className="text-gray-500 text-xs whitespace-nowrap">
-              {formatTimeAgo(property.createdAt)}
-            </span>
+
+            <div className="flex items-center justify-between">
+               <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center overflow-hidden">
+                     {property.listedBy?.profileImage ? (
+                        <img src={property.listedBy.profileImage} alt="" className="w-full h-full object-cover" />
+                     ) : (
+                        <span className="text-blue-600 font-bold">{property.listedBy?.name?.charAt(0) || 'E'}</span>
+                     )}
+                  </div>
+                  <div className="flex flex-col">
+                     <span className="text-xs font-bold text-gray-900 leading-none">{property.listedBy?.name || 'Elite Agent'}</span>
+                     <span className="text-[10px] text-gray-400 uppercase tracking-tighter">Verified Provider</span>
+                  </div>
+               </div>
+               <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-300 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
+                  <FiArrowRight className="w-4 h-4" />
+               </div>
+            </div>
           </div>
         </div>
       </div>
@@ -331,147 +248,71 @@ const FeaturedProperties = () => {
 
   if (loading) {
     return (
-      <section className="py-12 bg-gray-50">
+      <section className="py-24 bg-gray-50">
         <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center mb-8">
-            <div>
-              <h2 className="text-3xl font-bold text-gray-800">
-                Featured Properties
-              </h2>
-            </div>
-            <Link
-              to="/properties"
-              className="flex items-center text-blue-600 hover:text-blue-800 font-medium"
-            >
-              See all properties
-              <FiArrowRight className="ml-1 w-5 h-5" />
-            </Link>
-          </div>
-          
-          <div className="flex overflow-x-auto space-x-4 pb-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="flex-shrink-0 w-80">
-                <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden animate-pulse">
-                  <div className="h-48 bg-gray-200"></div>
-                  <div className="p-4">
-                    <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
-                    <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
-                    <div className="h-4 bg-gray-200 rounded w-full"></div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  if (featuredProperties.length === 0) {
-    return (
-      <section className="py-12 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center mb-8">
-            <div>
-              <h2 className="text-3xl font-bold text-gray-800">
-                Featured Properties
-              </h2>
-            </div>
-            <Link
-              to="/properties"
-              className="flex items-center text-blue-600 hover:text-blue-800 font-medium"
-            >
-              See all properties
-              <FiArrowRight className="ml-1 w-5 h-5" />
-            </Link>
-          </div>
-          
-          <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
-            <div className="text-4xl mb-4">🏠</div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">
-              No Featured Properties Available
-            </h3>
-            <p className="text-gray-600 mb-4">
-              Check back later for featured property listings
-            </p>
-            <button
-              onClick={() => navigate("/properties")}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition duration-200 font-medium"
-            >
-              Browse All Properties
-            </button>
-          </div>
+           <div className="h-10 w-48 bg-gray-200 rounded-full animate-pulse mb-12"></div>
+           <div className="flex space-x-6 overflow-hidden">
+              {[1, 2, 3].map(i => (
+                 <div key={i} className="w-1/3 h-[30rem] bg-white rounded-[2rem] animate-pulse"></div>
+              ))}
+           </div>
         </div>
       </section>
     );
   }
 
   return (
-    <section className="py-12 bg-gray-50">
+    <section className="py-24 bg-gray-50 overflow-hidden">
       <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h2 className="text-3xl font-bold text-gray-800">
-              Featured Properties
+        <div className="flex flex-col md:flex-row items-center justify-between mb-16 gap-8">
+          <div className="text-center md:text-left">
+            <div className="inline-flex items-center space-x-2 bg-blue-100 text-blue-600 px-4 py-2 rounded-full text-xs font-bold tracking-widest mb-4">
+              <span>PREMIUM SELECTION</span>
+            </div>
+            <h2 className="text-4xl lg:text-5xl font-black text-gray-900 tracking-tight">
+              Featured Highlights
             </h2>
-            <p className="text-gray-600 mt-1">
-              Discover premium properties in Abu Dhabi
-            </p>
           </div>
-          <Link
-            to="/properties"
-            className="flex items-center text-blue-600 hover:text-blue-800 font-medium"
-          >
-            See all properties
-            <FiArrowRight className="ml-1 w-5 h-5" />
-          </Link>
-        </div>
-
-        <div className="relative">
-          <div
-            ref={carouselRef}
-            className="flex overflow-x-auto scrollbar-hide space-x-4 pb-4"
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-          >
-            {featuredProperties.map((property) => (
-              <PropertyCard key={property._id} property={property} />
-            ))}
-          </div>
-
-          {featuredProperties.length > 2 && (
-            <>
+          
+          <div className="flex items-center space-x-4">
+             <Link
+              to="/properties"
+              className="text-gray-500 font-bold hover:text-blue-600 transition-colors mr-4"
+            >
+              Explore All
+            </Link>
+            <div className="flex space-x-2">
               <button
                 onClick={prevSlide}
-                className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-4 bg-white rounded-full shadow-md w-10 h-10 flex items-center justify-center hover:bg-gray-100 transition-colors z-10"
-                aria-label="Previous slide"
+                className="w-12 h-12 rounded-2xl bg-white shadow-xl flex items-center justify-center border border-gray-100 hover:bg-blue-600 hover:text-white transition-all active:scale-95"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 8 12"
-                  fill="#212223"
-                  height="14"
-                  width="14"
-                >
-                  <path d="M7.41008 1.41008L2.82008 6.00008L7.41008 10.5901L6.00008 12.0001L0.00008 6.00008L6.00008 0.00008L7.41008 1.41008Z"></path>
-                </svg>
+                <FiArrowRight className="w-5 h-5 rotate-180" />
               </button>
-
               <button
                 onClick={nextSlide}
-                className="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-4 bg-white rounded-full shadow-md w-10 h-10 flex items-center justify-center hover:bg-gray-100 transition-colors z-10"
-                aria-label="Next slide"
+                className="w-12 h-12 rounded-2xl bg-white shadow-xl flex items-center justify-center border border-gray-100 hover:bg-blue-600 hover:text-white transition-all active:scale-95"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 8 12"
-                  fill="#212223"
-                  height="14"
-                  width="14"
-                >
-                  <path d="M0.419922 10.5899L4.999922 5.99992L0.419922 1.40992L1.829922 -7.62939e-05L7.829922 5.99992L1.829922 11.9999L0.419922 10.5899Z"></path>
-                </svg>
+                <FiArrowRight className="w-5 h-5" />
               </button>
-            </>
+            </div>
+          </div>
+        </div>
+
+        <div
+          ref={carouselRef}
+          className="flex overflow-x-auto scrollbar-hide -mx-4 pb-12"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
+          {featuredProperties.length > 0 ? (
+            featuredProperties.map((property) => (
+              <PropertyCard key={property._id} property={property} />
+            ))
+          ) : (
+            <div className="w-full px-4">
+               <div className="h-64 bg-white rounded-[2rem] border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400 italic">
+                  No highlighted listings currently available.
+               </div>
+            </div>
           )}
         </div>
       </div>

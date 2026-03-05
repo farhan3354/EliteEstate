@@ -1,63 +1,54 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { propertyAPI } from "../../services/api";
 
 const PropertyCategories = () => {
   const navigate = useNavigate();
   const scrollContainerRef = useRef(null);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
 
-  const propertyCategories = [
-    {
-      value: "apartment",
-      name: "Apartment for Rent",
-      image:
-        "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
-    },
-    {
-      value: "villa",
-      name: "Villa for Rent",
-      image:
-        "https://images.unsplash.com/photo-1613977257363-707ba9348227?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
-    },
-    {
-      value: "townhouse",
-      name: "Townhouse for Rent",
-      image:
-        "https://images.unsplash.com/photo-1513584684374-8bab748fbf90?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
-    },
-    {
-      value: "penthouse",
-      name: "Penthouse for Rent",
-      image:
-        "https://images.unsplash.com/photo-1502005229762-cf1b2da7c5d6?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
-    },
-    {
-      value: "commercial",
-      name: "Commercial for Rent",
-      image:
-        "https://images.unsplash.com/photo-1497366811353-6870744d04b2?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
-    },
-    {
-      value: "land",
-      name: "Land Plots for Sale",
-      image:
-        "https://images.unsplash.com/photo-1500382017468-9049fed747ef?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
-    },
-    {
-      value: "short-term",
-      name: "Short Term Rentals",
-      image:
-        "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
-    },
-    {
-      value: "rooms",
-      name: "Rooms for Rent",
-      image:
-        "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
-    },
-  ];
+  const categoryImages = {
+    apartment: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=500&q=80",
+    villa: "https://images.unsplash.com/photo-1613977257363-707ba9348227?w=500&q=80",
+    townhouse: "https://images.unsplash.com/photo-1513584684374-8bab748fbf90?w=500&q=80",
+    commercial: "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=500&q=80",
+    land: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=500&q=80",
+    warehouses: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=500&q=80",
+    buildings: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=500&q=80",
+    rooms: "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=500&q=80",
+  };
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setLoading(true);
+        const response = await propertyAPI.getCategories();
+        
+        // Robust handling of different response structures
+        let data = [];
+        if (response.data?.success) {
+          data = response.data.data;
+        } else if (Array.isArray(response.data)) {
+          data = response.data;
+        } else if (response.data?.properties) {
+          data = response.data.properties;
+        }
+
+        // Ensure we only set an array
+        setCategories(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+        setCategories([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const handleCategoryClick = (categoryValue) => {
     navigate(`/properties?category=${categoryValue}`);
@@ -76,19 +67,14 @@ const PropertyCategories = () => {
         behavior: "smooth",
       });
 
-      setTimeout(() => {
-        setShowLeftArrow(container.scrollLeft > 0);
-        setShowRightArrow(
-          container.scrollLeft < container.scrollWidth - container.clientWidth
-        );
-      }, 300);
+      setTimeout(handleScroll, 300);
     }
   };
 
   const handleScroll = () => {
     const container = scrollContainerRef.current;
     if (container) {
-      setShowLeftArrow(container.scrollLeft > 0);
+      setShowLeftArrow(container.scrollLeft > 5);
       setShowRightArrow(
         container.scrollLeft <
           container.scrollWidth - container.clientWidth - 10
@@ -98,79 +84,88 @@ const PropertyCategories = () => {
 
   return (
     <>
-      <section className="py-16 bg-white">
+      <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h3 className="text-3xl font-bold text-gray-800 mb-4">
-              Popular Categories
-            </h3>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Browse through our most popular property categories in Abu Dhabi
+          <div className="text-center mb-16 px-4">
+             <div className="inline-flex items-center space-x-2 bg-blue-100 text-blue-600 px-4 py-2 rounded-full text-sm font-bold mb-4">
+              <span>EXPLORE BY CATEGORY</span>
+            </div>
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4 tracking-tight">
+              Property Type Collection
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
+              Find your ideal space from our curated selection of properties in Abu Dhabi's most prestigious developments.
             </p>
           </div>
-          <div className="relative">
+          <div className="relative group/arrows">
             {showLeftArrow && (
               <button
                 onClick={() => scroll("left")}
-                className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-white shadow-lg hover:shadow-xl p-3 transition-all duration-300 -translate-x-4"
+                className="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-white/90 backdrop-blur-sm shadow-xl hover:bg-white p-4 rounded-full transition-all duration-300 -translate-x-6 border border-gray-100"
                 aria-label="Previous categories"
               >
-                <FiChevronLeft className="w-5 h-5 text-gray-700" />
+                <FiChevronLeft className="w-6 h-6 text-blue-600" />
               </button>
             )}
 
             {showRightArrow && (
               <button
                 onClick={() => scroll("right")}
-                className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-white shadow-lg hover:shadow-xl p-3 transition-all duration-300 translate-x-4"
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-20 bg-white/90 backdrop-blur-sm shadow-xl hover:bg-white p-4 rounded-full transition-all duration-300 translate-x-6 border border-gray-100"
                 aria-label="Next categories"
               >
-                <FiChevronRight className="w-5 h-5 text-gray-700" />
+                <FiChevronRight className="w-6 h-6 text-blue-600" />
               </button>
             )}
+            
             <div
               ref={scrollContainerRef}
               onScroll={handleScroll}
-              className="flex space-x-4 overflow-x-auto scrollbar-hide scroll-smooth py-4 px-2"
+              className="flex space-x-6 overflow-x-auto scrollbar-hide scroll-smooth py-6 px-4"
               style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
-              {propertyCategories.map((category) => (
-                <div
-                  key={category.value}
-                  onClick={() => handleCategoryClick(category.value)}
-                  className="group flex-shrink-0 w-60 cursor-pointer transition-all duration-300"
-                >
-                  <div className="relative bg-white overflow-hidden shadow-lg hover:shadow-xl border-0">
-                    <div className="relative w-full h-60 overflow-hidden">
-                      <img
-                        src={category.image}
-                        alt={category.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
-                      <div className="absolute inset-0 bg-blue-500 opacity-0 group-hover:opacity-20 transition duration-300"></div>
-                      <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-                        <h4 className="text-lg font-bold mb-1">
-                          {category.name}
-                        </h4>
-                      </div>
-                      <svg
-                        viewBox="0 0 300 300"
-                        className="absolute inset-0 w-full h-full pointer-events-none opacity-0 group-hover:opacity-100 transition duration-300"
-                        preserveAspectRatio="none"
-                      >
-                        <path
-                          d="M0.5,0.5h299v299h-299V0.5z"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1"
-                          className="text-blue-500"
+              {loading ? (
+                // Skeleton loading state
+                [1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="flex-shrink-0 w-72 h-80 bg-white rounded-3xl animate-pulse shadow-sm border border-gray-100"></div>
+                ))
+              ) : categories.length > 0 ? (
+                categories.map((category) => (
+                  <div
+                    key={category.value}
+                    onClick={() => handleCategoryClick(category.value)}
+                    className="group flex-shrink-0 w-72 cursor-pointer transition-all duration-500"
+                  >
+                    <div className="relative bg-white overflow-hidden rounded-3xl shadow-xl border-4 border-white transform hover:scale-[1.02] transition-transform duration-500">
+                      <div className="relative w-full h-80 overflow-hidden">
+                        <img
+                          src={categoryImages[category.value] || "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=500"}
+                          alt={category.name}
+                          className="w-full h-full object-cover group-hover:scale-110 transition duration-700"
                         />
-                      </svg>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+                        <div className="absolute inset-0 ring-1 ring-inset ring-white/20 rounded-3xl"></div>
+                        
+                        <div className="absolute bottom-0 left-0 right-0 p-6 text-white transform group-hover:translate-y-[-8px] transition-transform duration-300">
+                          <div className="flex items-center justify-between mb-2">
+                             <div className="bg-blue-500/90 backdrop-blur-sm px-3 py-1 rounded-lg text-[10px] font-bold tracking-widest uppercase">
+                               {category.count} Listings
+                             </div>
+                          </div>
+                          <h4 className="text-2xl font-black mb-1 drop-shadow-md">
+                            {category.name}
+                          </h4>
+                          <div className="w-8 h-1 bg-blue-400 rounded-full group-hover:w-16 transition-all duration-500"></div>
+                        </div>
+                      </div>
                     </div>
                   </div>
+                ))
+              ) : (
+                <div className="w-full text-center py-10 text-gray-400 font-medium italic">
+                  No categories found in the collection.
                 </div>
-              ))}
+              )}
             </div>
           </div>
           <div className="text-center mt-12">
@@ -183,199 +178,9 @@ const PropertyCategories = () => {
             </button>
           </div>
         </div>
-        <style jsx>{`
-          .scrollbar-hide {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-          }
-          .scrollbar-hide::-webkit-scrollbar {
-            display: none;
-          }
-        `}</style>
       </section>
     </>
   );
 };
 
 export default PropertyCategories;
-
-// import React from "react";
-// import { useNavigate } from "react-router-dom";
-// import {
-//   FiHome,
-//   FiMapPin,
-//   FiArrowRight,
-//   FiStar,
-//   FiTrendingUp,
-//   FiHeart,
-// } from "react-icons/fi";
-
-// const PropertyCategories = () => {
-//   const navigate = useNavigate();
-
-//   const propertyCategories = [
-//     {
-//       value: "apartment",
-//       name: "Apartments",
-//       count: 1250,
-//       image:
-//         "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
-//       icon: FiHome,
-//       description: "Modern apartments in prime locations",
-//       trending: true,
-//     },
-//     {
-//       value: "villa",
-//       name: "Villas",
-//       count: 890,
-//       image:
-//         "https://images.unsplash.com/photo-1613977257363-707ba9348227?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
-//       icon: FiHome,
-//       description: "Luxury villas with premium amenities",
-//       featured: true,
-//     },
-//     {
-//       value: "townhouse",
-//       name: "Townhouses",
-//       count: 450,
-//       image:
-//         "https://images.unsplash.com/photo-1513584684374-8bab748fbf90?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
-//       icon: FiHome,
-//       description: "Spacious townhouses in family-friendly communities",
-//     },
-//     {
-//       value: "penthouse",
-//       name: "Penthouses",
-//       count: 120,
-//       image:
-//         "https://images.unsplash.com/photo-1502005229762-cf1b2da7c5d6?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
-//       icon: FiStar,
-//       description: "Exclusive penthouses with stunning views",
-//       luxury: true,
-//     },
-//     {
-//       value: "commercial",
-//       name: "Commercial",
-//       count: 680,
-//       image:
-//         "https://images.unsplash.com/photo-1497366811353-6870744d04b2?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
-//       icon: FiTrendingUp,
-//       description: "Office spaces and commercial properties",
-//     },
-//     {
-//       value: "land",
-//       name: "Land Plots",
-//       count: 320,
-//       image:
-//         "https://images.unsplash.com/photo-1500382017468-9049fed747ef?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
-//       icon: FiMapPin,
-//       description: "Prime land plots for development",
-//     },
-//   ];
-
-//   const handleCategoryClick = (categoryValue) => {
-//     navigate(`/properties?category=${categoryValue}`);
-//   };
-
-//   return (
-//     <>
-//       <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
-//         <div className="container mx-auto px-4">
-//           <div className="text-center mb-16">
-//             <div className="inline-flex items-center space-x-2 bg-blue-100 text-blue-600 px-4 py-2 rounded-full text-sm font-semibold mb-4">
-//               <FiMapPin className="w-4 h-4" />
-//               <span>Abu Dhabi Properties</span>
-//             </div>
-//             <h2 className="text-4xl lg:text-5xl font-bold text-gray-800 mb-4">
-//               Browse Property Categories
-//             </h2>
-//             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-//               Discover the perfect property type that matches your lifestyle and
-//               investment goals
-//             </p>
-//           </div>
-//           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-//             {propertyCategories.map((category) => {
-//               const IconComponent = category.icon;
-//               return (
-//                 <div
-//                   key={category.value}
-//                   onClick={() => handleCategoryClick(category.value)}
-//                   className="group bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer transform hover:scale-105 border border-gray-100 overflow-hidden"
-//                 >
-//                   <div className="relative h-48 overflow-hidden">
-//                     <img
-//                       src={category.image}
-//                       alt={category.name}
-//                       className="w-full h-full object-cover group-hover:scale-110 transition duration-700"
-//                     />
-//                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition duration-500"></div>
-//                     <div className="absolute top-4 left-4 flex flex-col space-y-2">
-//                       <div className="bg-white bg-opacity-95 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-semibold text-gray-800 shadow-lg">
-//                         {category.count.toLocaleString()} properties
-//                       </div>
-//                       {category.trending && (
-//                         <div className="bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center space-x-1">
-//                           <FiTrendingUp className="w-3 h-3" />
-//                           <span>Trending</span>
-//                         </div>
-//                       )}
-//                       {category.featured && (
-//                         <div className="bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center space-x-1">
-//                           <FiStar className="w-3 h-3" />
-//                           <span>Featured</span>
-//                         </div>
-//                       )}
-//                       {category.luxury && (
-//                         <div className="bg-purple-500 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center space-x-1">
-//                           <FiHeart className="w-3 h-3" />
-//                           <span>Luxury</span>
-//                         </div>
-//                       )}
-//                     </div>
-//                     <div className="absolute bottom-4 right-4 w-12 h-12 bg-blue-500 bg-opacity-20 backdrop-blur-sm rounded-xl flex items-center justify-center group-hover:bg-blue-500 group-hover:bg-opacity-90 transition duration-500">
-//                       <IconComponent className="w-6 h-6 text-white" />
-//                     </div>
-//                   </div>
-//                   <div className="p-6">
-//                     <h3 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-blue-500 transition duration-300">
-//                       {category.name}
-//                     </h3>
-//                     <p className="text-gray-600 mb-4 leading-relaxed">
-//                       {category.description}
-//                     </p>
-//                     <div className="flex items-center justify-between">
-//                       <div className="flex items-center space-x-2 text-blue-500 font-semibold group-hover:text-blue-600 transition duration-300">
-//                         <span>Explore Properties</span>
-//                         <FiArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition duration-300" />
-//                       </div>
-
-//                       {/* Popularity Indicator */}
-//                       <div className="flex items-center space-x-1 text-gray-400">
-//                         <FiHeart className="w-4 h-4" />
-//                         <span className="text-sm">
-//                           {Math.floor(category.count / 10)} favorites
-//                         </span>
-//                       </div>
-//                     </div>
-//                   </div>
-//                 </div>
-//               );
-//             })}
-//           </div>
-//           <div className="text-center mt-12">
-//             <button
-//               onClick={() => navigate("/properties")}
-//               className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 inline-flex items-center space-x-3"
-//             >
-//               <span>View All Properties</span>
-//               <FiArrowRight className="w-5 h-5" />
-//             </button>
-//           </div>
-//         </div>
-//       </section>
-//     </>
-//   );
-// };
-
-// export default PropertyCategories;

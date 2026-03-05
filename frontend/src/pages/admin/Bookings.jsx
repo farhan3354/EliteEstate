@@ -1,121 +1,43 @@
 import React, { useState, useEffect } from "react";
+import { bookingAPI } from "../../services/api";
 
 const AdminBookings = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState("all");
 
-  // Mock data - replace with actual API call
   useEffect(() => {
-    const mockBookings = [
-      {
-        id: 1,
-        property: {
-          title: "Luxury 3BR Apartment",
-          images: [
-            {
-              url: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400",
-            },
-          ],
-        },
-        user: {
-          name: "John Doe",
-          email: "john@example.com",
-          phone: "+971501234567",
-        },
-        agent: { name: "Sarah Wilson" },
-        type: "viewing",
-        scheduledDate: "2024-01-20T14:00:00",
-        status: "pending",
-        duration: 30,
-        message: "I would like to view the apartment this weekend.",
-        createdAt: "2024-01-15",
-      },
-      {
-        id: 2,
-        property: {
-          title: "Modern Villa with Pool",
-          images: [
-            {
-              url: "https://images.unsplash.com/photo-1613977257363-707ba9348227?w=400",
-            },
-          ],
-        },
-        user: {
-          name: "Emily Brown",
-          email: "emily@example.com",
-          phone: "+971502345678",
-        },
-        agent: { name: "Mike Johnson" },
-        type: "consultation",
-        scheduledDate: "2024-01-18T10:00:00",
-        status: "confirmed",
-        duration: 60,
-        message: "Interested in discussing the purchase process.",
-        createdAt: "2024-01-14",
-      },
-      {
-        id: 3,
-        property: {
-          title: "Studio Apartment",
-          images: [
-            {
-              url: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400",
-            },
-          ],
-        },
-        user: {
-          name: "David Wilson",
-          email: "david@example.com",
-          phone: "+971503456789",
-        },
-        agent: { name: "Emily Brown" },
-        type: "viewing",
-        scheduledDate: "2024-01-19T16:00:00",
-        status: "completed",
-        duration: 30,
-        message: "",
-        createdAt: "2024-01-13",
-      },
-      {
-        id: 4,
-        property: {
-          title: "Commercial Space",
-          images: [
-            {
-              url: "https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=400",
-            },
-          ],
-        },
-        user: {
-          name: "Sarah Johnson",
-          email: "sarah@example.com",
-          phone: "+971504567890",
-        },
-        agent: { name: "David Smith" },
-        type: "meeting",
-        scheduledDate: "2024-01-17T11:00:00",
-        status: "cancelled",
-        duration: 45,
-        message: "Need to discuss commercial lease terms.",
-        createdAt: "2024-01-12",
-      },
-    ];
-
-    setBookings(mockBookings);
-    setLoading(false);
+    fetchBookings();
   }, []);
+
+  const fetchBookings = async () => {
+    try {
+      setLoading(true);
+      const response = await bookingAPI.getAllAdminBookings();
+      if (response.data.success) {
+        setBookings(response.data.data.bookings);
+      }
+    } catch (err) {
+      console.error("Error fetching bookings:", err);
+      // Optional: set error state
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredBookings = bookings.filter(
     (booking) => filterStatus === "all" || booking.status === filterStatus
   );
 
-  const updateBookingStatus = (bookingId, status) => {
-    setBookings(
-      bookings.map((booking) =>
-        booking.id === bookingId ? { ...booking, status } : booking
-      )
-    );
+  const updateBookingStatus = async (bookingId, status) => {
+    try {
+      await bookingAPI.updateStatus(bookingId, status);
+      fetchBookings(); // Refresh list
+      alert(`Booking status updated to ${status}`);
+    } catch (error) {
+      console.error("Error updating booking status:", error);
+      alert("Failed to update status");
+    }
   };
 
   const getStatusColor = (status) => {
@@ -137,7 +59,7 @@ const AdminBookings = () => {
     return icons[type] || "📅";
   };
 
-  if (loading) {
+  if (loading && bookings.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">Loading bookings...</div>
@@ -180,8 +102,8 @@ const AdminBookings = () => {
             <div className="flex flex-col lg:flex-row lg:items-start gap-6">
               {/* Property Image */}
               <img
-                src={booking.property.images[0]?.url || "/placeholder.jpg"}
-                alt={booking.property.title}
+                src={booking.property?.images?.[0] || "/placeholder.jpg"}
+                alt={booking.property?.title}
                 className="w-24 h-24 object-cover rounded-lg"
               />
 
@@ -190,14 +112,14 @@ const AdminBookings = () => {
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">
-                      {booking.property.title}
+                      {booking.property?.title}
                     </h3>
                     <p className="text-gray-600">
-                      {getTypeIcon(booking.type)}{" "}
-                      {booking.type.charAt(0).toUpperCase() +
-                        booking.type.slice(1)}{" "}
+                      {getTypeIcon(booking.type || 'viewing')}{" "}
+                      {(booking.type || 'viewing').charAt(0).toUpperCase() +
+                        (booking.type || 'viewing').slice(1)}{" "}
                       • Scheduled:{" "}
-                      {new Date(booking.scheduledDate).toLocaleString()}
+                      {new Date(booking.date).toLocaleDateString()} at {booking.time}
                     </p>
                   </div>
                   <span
@@ -214,15 +136,15 @@ const AdminBookings = () => {
                     <p className="font-medium text-gray-900">
                       User Information
                     </p>
-                    <p className="text-gray-600">{booking.user.name}</p>
-                    <p className="text-gray-600">{booking.user.email}</p>
-                    <p className="text-gray-600">{booking.user.phone}</p>
+                    <p className="text-gray-600">{booking.user?.name}</p>
+                    <p className="text-gray-600">{booking.user?.email}</p>
+                    <p className="text-gray-600">{booking.user?.phone}</p>
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">Agent</p>
-                    <p className="text-gray-600">{booking.agent.name}</p>
+                    <p className="font-medium text-gray-900">Landlord/Agent</p>
+                    <p className="text-gray-600">{booking.landlord?.name}</p>
                     <p className="text-gray-600">
-                      Duration: {booking.duration} minutes
+                      {booking.landlord?.email}
                     </p>
                     <p className="text-gray-600">
                       Created:{" "}
@@ -247,7 +169,7 @@ const AdminBookings = () => {
                   <>
                     <button
                       onClick={() =>
-                        updateBookingStatus(booking.id, "confirmed")
+                        updateBookingStatus(booking._id, "confirmed")
                       }
                       className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
                     >
@@ -255,7 +177,7 @@ const AdminBookings = () => {
                     </button>
                     <button
                       onClick={() =>
-                        updateBookingStatus(booking.id, "cancelled")
+                        updateBookingStatus(booking._id, "cancelled")
                       }
                       className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
                     >
@@ -265,7 +187,7 @@ const AdminBookings = () => {
                 )}
                 {booking.status === "confirmed" && (
                   <button
-                    onClick={() => updateBookingStatus(booking.id, "completed")}
+                    onClick={() => updateBookingStatus(booking._id, "completed")}
                     className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
                   >
                     Mark Complete

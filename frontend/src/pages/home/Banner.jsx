@@ -1,39 +1,33 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiSearch, FiMapPin, FiHome, FiChevronDown } from "react-icons/fi";
-import { locationAPI } from "../../services/api";
+import { FiSearch, FiMapPin, FiHome, FiChevronDown, FiArrowRight } from "react-icons/fi";
+import { locationAPI, propertyAPI } from "../../services/api";
 
 const Banner = () => {
   const navigate = useNavigate();
   const [locations, setLocations] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [searchData, setSearchData] = useState({
     category: "",
     location: "",
     keyword: "",
   });
 
-  const propertyCategories = [
-    { value: "", name: "All Categories" },
-    { value: "apartment", name: "Apartments" },
-    { value: "villa", name: "Villas" },
-    { value: "townhouse", name: "Townhouses" },
-    { value: "penthouse", name: "Penthouses" },
-    { value: "commercial", name: "Commercial" },
-    { value: "land", name: "Land" },
-  ];
-
   useEffect(() => {
-    const fetchLocations = async () => {
+    const fetchInitialData = async () => {
       try {
-        const response = await locationAPI.getAll();
-        if (response.data.success) {
-          setLocations(response.data.data);
-        }
+        const [locRes, catRes] = await Promise.all([
+          locationAPI.getAll(),
+          propertyAPI.getCategories()
+        ]);
+        
+        if (locRes.data.success) setLocations(locRes.data.data);
+        if (catRes.data.success) setCategories(catRes.data.data);
       } catch (error) {
-        console.error("Error fetching locations for banner:", error);
+        console.error("Error fetching banner data:", error);
       }
     };
-    fetchLocations();
+    fetchInitialData();
   }, []);
 
   const handleSearch = () => {
@@ -50,152 +44,129 @@ const Banner = () => {
   };
 
   return (
-    <>
-      <section className="relative bg-blue-600 text-white py-20 lg:py-28 overflow-hidden">
-        <div className="absolute inset-0 bg-blue-600 bg-opacity-20"></div>
-        {/* <div className="absolute top-0 right-0 w-72 h-72 bg-white bg-opacity-10 rounded-full -translate-y-36 translate-x-36"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-white bg-opacity-5 rounded-full -translate-x-48 translate-y-48"></div> */}
-        <div className="absolute top-0 right-0 w-40 h-40 md:w-72 md:h-72 bg-white bg-opacity-10 rounded-full -translate-y-20 md:-translate-y-36 translate-x-20 md:translate-x-36"></div>
-        <div className="absolute bottom-0 left-0 w-36 h-36 md:w-80 md:h-86 bg-white bg-opacity-5 rounded-full -translate-x-20 md:-translate-x-48translate-y-20 md:translate-y-48"></div>
+    <section className="relative min-h-[90vh] flex items-center pt-20 pb-32 overflow-hidden bg-gray-900">
+      {/* Premium Background with Overlay */}
+      <div className="absolute inset-0 z-0">
+        <img 
+          src="https://images.unsplash.com/photo-1582407947304-fd86f028f716?w=1600&q=80" 
+          alt="Abu Dhabi Skyline" 
+          className="w-full h-full object-cover opacity-60 scale-105"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-gray-900/40 via-gray-900/60 to-gray-900/90"></div>
+      </div>
 
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-12">
-              <div className="inline-flex items-center space-x-2 bg-white bg-opacity-20 backdrop-blur-sm rounded-full px-6 py-3 mb-8 border border-white border-opacity-30">
-                <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
-                <span className="text-sm text-black font-semibold">
-                  5,000+ Premium Properties in Abu Dhabi
-                </span>
-              </div>
-              <h1 className="text-4xl lg:text-6xl font-bold mb-6 leading-tight">
-                Find Your Perfect
-                <span className="block bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
-                  Property in Abu Dhabi
-                </span>
-              </h1>
-              <p className="text-xl lg:text-2xl mb-8 text-blue-100 max-w-3xl mx-auto leading-relaxed">
-                Discover exclusive properties for rent and sale across Abu
-                Dhabi's most prestigious locations
-              </p>
-              <div className="flex justify-center items-center space-x-8 mb-12">
-                <div className="text-center">
-                  <div className="text-2xl lg:text-3xl font-bold text-white">
-                    10K+
-                  </div>
-                  <div className="text-blue-200 text-sm">Properties</div>
+      <div className="container mx-auto px-4 relative z-10">
+        <div className="max-w-5xl mx-auto text-center">
+          {/* Badge */}
+          <div className="inline-flex items-center space-x-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-6 py-2 mb-10 transform transition-transform hover:scale-105">
+            <span className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+            </span>
+            <span className="text-sm font-bold text-white tracking-widest uppercase">
+              Elite Properties in Abu Dhabi
+            </span>
+          </div>
+
+          {/* Heading */}
+          <h1 className="text-5xl lg:text-7xl font-black text-white mb-8 tracking-tighter leading-[1.1]">
+            <span className="block opacity-90">Find Your Next</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
+              Legendary Address
+            </span>
+          </h1>
+
+          <p className="text-xl lg:text-2xl text-gray-300 mb-16 max-w-3xl mx-auto font-medium leading-relaxed">
+            Curated premium real estate in the most prestigious districts of the UAE's capital.
+          </p>
+
+          {/* Premium Search Bar */}
+          <div className="bg-white/5 backdrop-blur-2xl p-4 rounded-[2.5rem] border border-white/10 shadow-2xl max-w-4xl mx-auto transform transition-all hover:shadow-blue-500/10 active:scale-[0.99]">
+            <div className="flex flex-col md:flex-row items-center gap-3">
+              {/* Category Select */}
+              <div className="relative w-full md:w-1/4 group">
+                <div className="absolute left-6 top-1/2 -translate-y-1/2 text-blue-400 group-hover:scale-110 transition-transform">
+                  <FiHome className="w-5 h-5" />
                 </div>
-                <div className="w-1 h-8 bg-blue-300 bg-opacity-50 rounded-full"></div>
-                <div className="text-center">
-                  <div className="text-2xl lg:text-3xl font-bold text-white">
-                    5K+
-                  </div>
-                  <div className="text-blue-200 text-sm">Happy Clients</div>
-                </div>
-                <div className="w-1 h-8 bg-blue-300 bg-opacity-50 rounded-full"></div>
-                <div className="text-center">
-                  <div className="text-2xl lg:text-3xl font-bold text-white">
-                    50+
-                  </div>
-                  <div className="text-blue-200 text-sm">Locations</div>
-                </div>
-              </div>
-            </div>
-            <div className="bg-white rounded-2xl p-2 shadow-2xl transform hover:shadow-3xl transition-all duration-300">
-              <div className="flex flex-col lg:flex-row gap-2">
-                <div className="relative flex-1">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FiHome className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <select
-                    value={searchData.category}
-                    onChange={(e) =>
-                      handleInputChange("category", e.target.value)
-                    }
-                    className="w-full pl-10 pr-4 py-4 border border-gray-300 rounded-xl text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white font-medium"
-                  >
-                    {propertyCategories.map((cat) => (
-                      <option key={cat.value} value={cat.value}>
-                        {cat.name}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                    <FiChevronDown className="h-4 w-4 text-gray-400" />
-                  </div>
-                </div>
-                <div className="relative flex-1">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FiMapPin className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <select
-                    value={searchData.location}
-                    onChange={(e) =>
-                      handleInputChange("location", e.target.value)
-                    }
-                    className="w-full pl-10 pr-4 py-4 border border-gray-300 rounded-xl text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white font-medium"
-                  >
-                    <option value="">All Locations</option>
-                    {locations.map((loc) => (
-                      <option key={loc._id} value={loc.name}>
-                        {loc.name}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                    <FiChevronDown className="h-4 w-4 text-gray-400" />
-                  </div>
-                </div>
-                <div className="relative flex-1">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FiSearch className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="Search by keyword, property name..."
-                    value={searchData.keyword}
-                    onChange={(e) =>
-                      handleInputChange("keyword", e.target.value)
-                    }
-                    className="w-full pl-10 pr-4 py-4 border border-gray-300 rounded-xl text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-medium placeholder-gray-500"
-                  />
-                </div>
-                <button
-                  onClick={handleSearch}
-                  className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center space-x-2 min-w-[140px]"
+                <select
+                  value={searchData.category}
+                  onChange={(e) => handleInputChange("category", e.target.value)}
+                  className="w-full bg-white/10 text-white pl-14 pr-6 py-5 rounded-3xl border border-transparent focus:border-blue-500/50 outline-none transition-all appearance-none font-bold"
                 >
-                  <FiSearch className="w-5 h-5" />
-                  <span>Search</span>
-                </button>
+                  <option value="" className="bg-gray-900 text-white">All Types</option>
+                  {categories.map((cat) => (
+                    <option key={cat.value} value={cat.value} className="bg-gray-900 text-white">
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+                <FiChevronDown className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
               </div>
-            </div>
-            <div className="mt-8 flex flex-wrap justify-center gap-3">
-              <button className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur-sm text-black px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border border-white border-opacity-30 hover:border-opacity-50">
-                Apartments
-              </button>
-              <button className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur-sm text-black px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border border-white border-opacity-30 hover:border-opacity-50">
-                Villas
-              </button>
-              <button className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur-sm text-black px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border border-white border-opacity-30 hover:border-opacity-50">
-                Luxury
-              </button>
-              <button className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur-sm text-black px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border border-white border-opacity-30 hover:border-opacity-50">
-                Waterfront
-              </button>
-              <button className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur-sm text-black px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border border-white border-opacity-30 hover:border-opacity-50">
-                New Projects
+
+              {/* Location Select */}
+              <div className="relative w-full md:w-1/4 group">
+                <div className="absolute left-6 top-1/2 -translate-y-1/2 text-blue-400 group-hover:scale-110 transition-transform">
+                  <FiMapPin className="w-5 h-5" />
+                </div>
+                <select
+                  value={searchData.location}
+                  onChange={(e) => handleInputChange("location", e.target.value)}
+                  className="w-full bg-white/10 text-white pl-14 pr-6 py-5 rounded-3xl border border-transparent focus:border-blue-500/50 outline-none transition-all appearance-none font-bold"
+                >
+                  <option value="" className="bg-gray-900 text-white">All Areas</option>
+                  {locations.map((loc) => (
+                    <option key={loc._id} value={loc.name} className="bg-gray-900 text-white">
+                      {loc.name}
+                    </option>
+                  ))}
+                </select>
+                <FiChevronDown className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+              </div>
+
+              {/* Keyword Input */}
+              <div className="relative flex-1 w-full group">
+                <div className="absolute left-6 top-1/2 -translate-y-1/2 text-blue-400 group-hover:scale-110 transition-transform">
+                  <FiSearch className="w-5 h-5" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Street, Building, ID..."
+                  value={searchData.keyword}
+                  onChange={(e) => handleInputChange("keyword", e.target.value)}
+                  className="w-full bg-white/10 text-white pl-14 pr-6 py-5 rounded-3xl border border-transparent focus:border-blue-500/50 outline-none transition-all font-bold placeholder:text-gray-500"
+                />
+              </div>
+
+              {/* Search Button */}
+              <button
+                onClick={handleSearch}
+                className="w-full md:w-auto h-full px-10 py-5 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-3xl transition-all shadow-xl shadow-blue-600/20 active:scale-95 flex items-center justify-center space-x-3 group"
+              >
+                <span className="tracking-widest uppercase">Search</span>
+                <FiArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </button>
             </div>
           </div>
-        </div>
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
-          <div className="animate-bounce">
-            <div className="w-6 h-10 border-2 border-white border-opacity-50 rounded-full flex justify-center">
-              <div className="w-1 h-3 bg-white bg-opacity-50 rounded-full mt-2"></div>
-            </div>
+
+          {/* Quick Filters */}
+          <div className="mt-12 flex flex-wrap justify-center gap-4 opacity-0 animate-fade-in-up" 
+               style={{ animation: 'fade-in-up 1s ease-out 0.5s forwards' }}>
+            {['Luxury Villas', 'Waterfront', 'Penthouse', 'New Launches'].map((item) => (
+              <button 
+                key={item}
+                className="bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 px-6 py-2.5 rounded-full text-sm font-bold text-gray-200 transition-all hover:border-blue-500/30"
+              >
+                {item}
+              </button>
+            ))}
           </div>
         </div>
-      </section>
-    </>
+      </div>
+      
+      {/* Decorative Blur Elements */}
+      <div className="absolute top-1/4 -left-20 w-96 h-96 bg-blue-600/20 rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-emerald-600/20 rounded-full blur-[120px] pointer-events-none"></div>
+    </section>
   );
 };
 

@@ -14,11 +14,15 @@ import {
   getPendingProperties,
   approveProperty,
   rejectProperty,
+  getFeaturedProperties,
+  getPropertyCategories,
 } from "../controllers/propertyController.js";
 import { protect, adminMiddleware } from "../middleware/auth.js";
 import { upload } from "../config/cloudinary.js";
 
 router.get("/", getProperties);
+router.get("/featured", getFeaturedProperties);
+router.get("/categories", getPropertyCategories);
 router.get("/search", searchProperties);
 
 router.get("/admin", protect, adminMiddleware, getAdminProperties); 

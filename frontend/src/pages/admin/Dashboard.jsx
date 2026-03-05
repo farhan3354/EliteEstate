@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { adminAPI } from "../../services/api";
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
@@ -11,49 +12,27 @@ const AdminDashboard = () => {
   });
 
   const [recentActivities, setRecentActivities] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Mock data - replace with actual API calls
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const response = await adminAPI.getStats();
+      if (response.data.success) {
+        setStats(response.data.data.stats);
+        setRecentActivities(response.data.data.recentActivities);
+      }
+    } catch (err) {
+      console.error("Error fetching dashboard data:", err);
+      setError("Failed to load dashboard data. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    // Simulate API call
-    setStats({
-      totalUsers: 1247,
-      totalAgents: 89,
-      totalProperties: 567,
-      totalBookings: 234,
-      pendingReviews: 12,
-      revenue: 125000,
-    });
-
-    setRecentActivities([
-      {
-        id: 1,
-        type: "user",
-        action: "New user registered",
-        time: "2 minutes ago",
-        user: "John Doe",
-      },
-      {
-        id: 2,
-        type: "property",
-        action: "New property listed",
-        time: "5 minutes ago",
-        user: "Sarah Wilson",
-      },
-      {
-        id: 3,
-        type: "booking",
-        action: "New booking request",
-        time: "10 minutes ago",
-        user: "Mike Johnson",
-      },
-      {
-        id: 4,
-        type: "review",
-        action: "New review submitted",
-        time: "15 minutes ago",
-        user: "Emily Brown",
-      },
-    ]);
+    fetchDashboardData();
   }, []);
 
   const statCards = [
@@ -105,6 +84,31 @@ const AdminDashboard = () => {
     };
     return colors[color] || "bg-gray-500";
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading dashboard data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 bg-red-50 border border-red-200 rounded-lg text-center">
+        <p className="text-red-600">{error}</p>
+        <button 
+          onClick={fetchDashboardData}
+          className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -161,9 +165,15 @@ const AdminDashboard = () => {
                   <p className="text-sm font-medium text-gray-900">
                     {activity.action}
                   </p>
-                  <p className="text-sm text-gray-600">by {activity.user}</p>
+                  <p className="text-sm text-gray-600">
+                    {activity.user ? `by ${activity.user}` : ""}
+                  </p>
                 </div>
-                <span className="text-xs text-gray-500">{activity.time}</span>
+                <span className="text-xs text-gray-500">
+                  {new Date(activity.time).toLocaleString() !== "Invalid Date"
+                    ? new Date(activity.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    : activity.time}
+                </span>
               </div>
             ))}
           </div>

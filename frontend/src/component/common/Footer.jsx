@@ -17,24 +17,24 @@ const Footer = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 sm:gap-8">
           <div className="lg:col-span-2">
             <Link to="/" className="flex items-center space-x-3 mb-4 sm:mb-6">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-                <span className="text-white font-bold text-base sm:text-lg">
-                  P
-                </span>
-              </div>
+              <img 
+                src="/logo.png" 
+                alt="EliteEstate" 
+                className="w-10 h-10 sm:w-12 sm:h-12 object-contain" 
+              />
               <div>
-                <span className="text-xl sm:text-2xl font-bold text-gray-900">
-                  PrimeProperties
+                <span className="text-xl sm:text-2xl font-black text-gray-900 tracking-tighter">
+                  EliteEstate
                 </span>
-                <p className="text-blue-500 text-xs sm:text-sm font-medium">
-                  Abu Dhabi
+                <p className="text-blue-600 text-xs sm:text-sm font-black uppercase tracking-widest">
+                  Abu Dhabi · Dubai
                 </p>
               </div>
             </Link>
-            <p className="text-gray-600 mb-4 sm:mb-6 max-w-md text-sm sm:text-base lg:text-lg leading-relaxed">
-              Your trusted partner for finding the perfect property in Abu
-              Dhabi. We offer verified listings, transparent pricing, and
-              exceptional service to help you find your dream home.
+            <p className="text-gray-600 mb-4 sm:mb-6 max-w-md text-sm sm:text-base lg:text-lg leading-relaxed font-medium">
+              The pinnacle of luxury real estate in the UAE. We provide an exclusive 
+              selection of verified high-end properties, ensuring a seamless experience 
+              for the world's most discerning clientele.
             </p>
             <div className="flex space-x-3 sm:space-x-4">
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-xl flex items-center justify-center hover:bg-blue-500 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-orange-500/25 hover:scale-110">
@@ -152,8 +152,8 @@ const Footer = () => {
         </div>
         <div className="border-t border-gray-300 mt-8 sm:mt-12 pt-6 sm:pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-3 sm:space-y-4 md:space-y-0">
-            <div className="text-gray-500 text-xs sm:text-sm text-center md:text-left">
-              <p>&copy; 2024 PrimeProperties Abu Dhabi. All rights reserved.</p>
+            <div className="text-gray-500 text-xs sm:text-sm text-center md:text-left font-medium">
+              <p>&copy; 2024 EliteEstate Abu Dhabi. All rights reserved.</p>
             </div>
             <div className="flex flex-wrap justify-center space-x-4 sm:space-x-6 text-xs sm:text-sm text-gray-500">
               <Link

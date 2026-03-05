@@ -27,7 +27,16 @@ const locationStorage = new CloudinaryStorage({
   },
 });
 
+const categoryStorage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "estateelite/categories",
+    allowed_formats: ["jpg", "jpeg", "png", "webp", "jfif"],
+  },
+});
+
 export const upload = multer({ storage: propertyStorage });
 export const uploadLocation = multer({ storage: locationStorage });
+export const uploadCategory = multer({ storage: categoryStorage });
 
 export default cloudinary;

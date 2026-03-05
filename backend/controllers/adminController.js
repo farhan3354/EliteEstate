@@ -1,5 +1,8 @@
 import Agent from "../models/agent.js";
 import User from "../models/authModel.js";
+import Property from "../models/property.js";
+import Booking from "../models/booking.js";
+import Review from "../models/review.js";
 
 export const getAllAgents = async (req, res) => {
   try {
@@ -298,6 +301,80 @@ export const getAgentStats = async (req, res) => {
       success: false,
       message: "Error fetching agent statistics",
       error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+};
+
+export const getDashboardOverview = async (req, res) => {
+  try {
+    const totalUsers = await User.countDocuments({ role: "user" });
+    const totalAgents = await Agent.countDocuments();
+    const totalProperties = await Property.countDocuments();
+    const totalBookings = await Booking.countDocuments();
+    const pendingReviews = await Review.countDocuments({ status: "pending" });
+    
+    // Calculate total revenue from verified agent commissions or property prices?
+    // Based on the models, let's sum totalCommission from all agents for admin revenue
+    const revenueData = await Agent.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalRevenue: { $sum: "$totalCommission" },
+        },
+      },
+    ]);
+    
+    const revenue = revenueData[0]?.totalRevenue || 0;
+
+    const recentActivities = [];
+    
+    // Get recent users
+    const recentUsers = await User.find({ role: "user" })
+      .sort("-createdAt")
+      .limit(2);
+    recentUsers.forEach(u => {
+      recentActivities.push({
+        id: `u-${u._id}`,
+        type: "user",
+        action: "New user registered",
+        time: u.createdAt,
+        user: u.name,
+      });
+    });
+
+    // Get recent properties
+    const recentProps = await Property.find()
+      .sort("-createdAt")
+      .limit(2);
+    recentProps.forEach(p => {
+      recentActivities.push({
+        id: `p-${p._id}`,
+        type: "property",
+        action: "New property listed",
+        time: p.createdAt,
+        user: "System", // Or fetch listedBy
+      });
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        stats: {
+          totalUsers,
+          totalAgents,
+          totalProperties,
+          totalBookings,
+          pendingReviews,
+          revenue,
+        },
+        recentActivities: recentActivities.sort((a, b) => b.time - a.time).slice(0, 5),
+      },
+    });
+  } catch (error) {
+    console.error("Dashboard overview error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching dashboard statistics",
     });
   }
 };

@@ -134,3 +134,26 @@ export const updateBookingStatus = async (req, res) => {
     });
   }
 };
+
+// Get all bookings (Admin only)
+export const getAllBookings = async (req, res) => {
+  try {
+    const bookings = await Booking.find()
+      .populate("property", "title location images")
+      .populate("user", "name email phone")
+      .populate("landlord", "name email phone")
+      .sort("-createdAt");
+
+    res.status(200).json({
+      success: true,
+      count: bookings.length,
+      data: { bookings },
+    });
+  } catch (error) {
+    console.error("Get all bookings error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch all bookings",
+    });
+  }
+};

@@ -51,15 +51,17 @@ const Header = () => {
             to="/"
             className="flex items-center space-x-2 sm:space-x-3 group flex-shrink-0"
           >
-            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-400 to-blue-500 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
-              <FiHome className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-            </div>
+            <img 
+              src="/logo.png" 
+              alt="EliteEstate" 
+              className="w-8 h-8 sm:w-10 sm:h-10 object-contain group-hover:scale-110 transition-transform duration-300" 
+            />
             <div className="flex flex-col">
-              <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-500 to-blue-600 bg-clip-text text-transparent leading-tight">
-                EstateElite
+              <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-700 to-blue-900 bg-clip-text text-transparent leading-tight">
+                EliteEstate
               </span>
-              <span className="text-xs text-blue-400 -mt-0.5 font-medium">
-                Premium Properties
+              <span className="text-[10px] text-blue-500 -mt-0.5 font-black uppercase tracking-widest">
+                Luxurious Living
               </span>
             </div>
           </Link>

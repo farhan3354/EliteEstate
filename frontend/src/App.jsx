@@ -48,6 +48,8 @@ import AgentAvailability from "./component/agentPage/AgentAvailability";
 import AgentAssignedProperties from "./component/agentPage/AgentAssignedProperties";
 import OwnerBookings from "./component/owner/OwnerBookings";
 import UserBookings from "./component/userDashboard/UserBookings";
+import CategoriesPage from "./pages/CategoriesPage";
+import ManageCategories from "./pages/admin/ManageCategories";
 
 export default function App() {
   return (
@@ -65,6 +67,7 @@ export default function App() {
           <Route path="agents/:id" element={<AgentProfile />} />
           <Route path="become-agent" element={<BecomeAgent />} />
           <Route path="become-owner" element={<BecomeOwner />} />
+          <Route path="categories" element={<CategoriesPage />} />
           <Route path="task" element={<ArrayP />} />
           <Route path="*" element={<NotFound />} />
         </Route>
@@ -102,7 +105,7 @@ export default function App() {
           <Route path="profile" element={<OwnAgentProfile />} />
         </Route>
         {/* </Route> */}
-        {/* <Route element={<ProtectRoute allowedRoles={["admin"]} />}> */}
+        <Route element={<ProtectRoute allowedRoles={["admin"]} />}>
         <Route path="/admin-dashboard" element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
           <Route path="users" element={<AdminUsers />} />
@@ -111,8 +114,10 @@ export default function App() {
           <Route path="properties" element={<AdminProperties />} />
           <Route path="properties/pending" element={<PendingProperties />} />
           <Route path="locations" element={<ManageLocations />} />
+          <Route path="categories" element={<ManageCategories />} />
           <Route path="reviews" element={<AdminReviews />} />
           <Route path="commissions" element={<AdminCommissions />} />
+        </Route>
         </Route>
       </Routes>
     </Router>

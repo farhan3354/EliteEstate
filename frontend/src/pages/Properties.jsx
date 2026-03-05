@@ -69,51 +69,23 @@ const Properties = () => {
         setLocations(locationRes.data.data.map((loc) => loc.name));
       }
 
-      const params = new URLSearchParams();
-      params.append("category", "all");
-      const response = await api.get(`/properties/search?${params.toString()}`);
-      const data = response.data.data;
-      if (data && data.filters) {
-        const filters = data.filters;
-
-        const allCategory = {
-          value: "all",
-          label: "All Properties",
-          count: filters.totalCount || 0,
-        };
-
-        setCategories([allCategory, ...(filters.categories || [])]);
-
-        if (filters.minPrice && filters.maxPrice) {
-          setPriceRange([filters.minPrice, filters.maxPrice]);
-        }
+      // Fetch dynamic categories
+      const categoryRes = await api.get("/categories");
+      if (categoryRes.data.success) {
+        const cats = categoryRes.data.data.map(c => ({
+          value: c.value,
+          label: c.name,
+          count: c.count || 0
+        }));
+        
+        const totalCount = cats.reduce((acc, curr) => acc + curr.count, 0);
+        setCategories([
+          { value: "all", label: "All Properties", count: totalCount },
+          ...cats
+        ]);
       }
     } catch (error) {
       console.error("Error fetching filters:", error);
-      setCategories([
-        { value: "all", label: "All Properties", count: 0 },
-        { value: "apartments", label: "Apartments", count: 0 },
-        { value: "villas", label: "Villas", count: 0 },
-        { value: "townhouses", label: "Townhouses", count: 0 },
-        { value: "commercial", label: "Commercial", count: 0 },
-        { value: "land", label: "Land", count: 0 },
-        { value: "rooms", label: "Rooms", count: 0 },
-        { value: "warehouses", label: "Warehouses", count: 0 },
-        { value: "buildings", label: "Buildings", count: 0 },
-      ]);
-      // Fallback if API fails
-      if (locations.length === 0) {
-        setLocations([
-          "Al Reem Island",
-          "Khalifa City",
-          "Mohammed Bin Zayed City",
-          "Shakhbout City",
-          "Downtown",
-          "Al Raha Beach",
-          "Yas Island",
-          "Saadiyat Island",
-        ]);
-      }
     }
   };
   const resetFilters = () => {
@@ -124,21 +96,13 @@ const Properties = () => {
     setLocation("any");
   };
 
-  const getCategoryLabel = (category) => {
-    const labels = {
-      apartments: "Apartments",
-      villas: "Villas",
-      townhouses: "Townhouses",
-      commercial: "Commercial",
-      land: "Land",
-      rooms: "Rooms",
-      warehouses: "Warehouses",
-      buildings: "Buildings",
-    };
-    return labels[category] || category;
+  const getCategoryLabel = (categoryValue) => {
+    const foundCat = categories.find(c => c.value === categoryValue);
+    return foundCat ? foundCat.label : categoryValue;
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return "Recently";
     const date = new Date(dateString);
     const now = new Date();
     const diffMs = now - date;
@@ -156,49 +120,51 @@ const Properties = () => {
     <div className="min-h-screen bg-gray-50 py-6">
       <div className="max-w-7xl mx-auto px-4">
         <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-8 mt-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                Property for Sale in Abu Dhabi
+              <h1 className="text-3xl lg:text-4xl font-extrabold text-gray-900 tracking-tight">
+                Properties in Abu Dhabi
               </h1>
-              <p className="text-gray-600 text-sm mt-1">
+              <p className="text-gray-500 text-lg mt-2 flex items-center">
+                <span className="w-2 h-2 bg-blue-600 rounded-full mr-2"></span>
                 {loading
-                  ? "Loading..."
-                  : `${properties.length} properties found`}
+                  ? "Discovering available listings..."
+                  : `${properties.length} Exclusive Listings Found`}
               </p>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-gray-600 whitespace-nowrap">
-                Sort by:
+            <div className="flex items-center gap-4 bg-gray-50 p-2 rounded-2xl border border-gray-100 shadow-sm">
+              <span className="text-sm font-bold text-gray-400 uppercase tracking-wider ml-2">
+                Sort:
               </span>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium"
+                className="bg-white px-4 py-2 border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-bold text-gray-700 shadow-sm transition-all"
               >
-                <option value="newest">Newest</option>
+                <option value="newest">Newest First</option>
                 <option value="price-low">Price: Low to High</option>
                 <option value="price-high">Price: High to Low</option>
               </select>
             </div>
           </div>
-          <div className="space-y-4">
+
+          <div className="space-y-8">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Property Type
+              <label className="block text-sm font-bold text-gray-500 uppercase tracking-widest mb-4">
+                Property Categories
               </label>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-3">
                 {categories.map((cat) => (
                   <button
                     key={cat.value}
                     onClick={() => setSelectedCategory(cat.value)}
-                    className={`px-4 py-2 rounded-full border text-sm font-medium transition-all duration-200 ${
+                    className={`px-6 py-3 rounded-2xl border text-sm font-bold transition-all duration-300 transform active:scale-95 ${
                       selectedCategory === cat.value
-                        ? "bg-blue-600 text-white border-blue-600 shadow-sm"
-                        : "bg-white text-gray-700 border-gray-300 hover:border-gray-400 hover:bg-gray-50"
+                        ? "bg-blue-600 text-white border-blue-600 shadow-xl shadow-blue-200"
+                        : "bg-white text-gray-600 border-gray-200 hover:border-blue-300 hover:text-blue-600 hover:shadow-lg"
                     }`}
                   >
-                    {cat.label} ({cat.count})
+                    {cat.label} <span className="ml-1 opacity-60 text-xs">{cat.count}</span>
                   </button>
                 ))}
               </div>
@@ -386,143 +352,136 @@ const Properties = () => {
             </button>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-8">
             {properties.map((property) => (
               <div
                 key={property._id}
-                className="bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200 overflow-hidden"
+                className="group bg-white rounded-3xl border border-gray-100 hover:border-blue-200 hover:shadow-2xl hover:shadow-blue-100/50 transition-all duration-500 overflow-hidden"
               >
-                <div className="flex flex-col sm:flex-row">
-                  <div className="sm:w-80 relative">
+                <div className="flex flex-col lg:flex-row h-full">
+                  <div className="lg:w-[400px] relative overflow-hidden">
                     <img
                       src={
                         property.images?.[0] ||
-                        "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400"
+                        "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800"
                       }
                       alt={property.title}
-                      className="w-full h-48 sm:h-full object-cover"
+                      className="w-full h-64 lg:h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
                     />
-                    <div className="absolute top-3 left-3 flex flex-col gap-2">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    
+                    <div className="absolute top-4 left-4 flex flex-col gap-2">
                       {property.isUrgent && (
-                        <span className="bg-orange-500 text-white px-2 py-1 rounded text-xs font-semibold uppercase tracking-wide">
+                        <span className="bg-orange-500/90 backdrop-blur-sm text-white px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg">
                           Urgent
                         </span>
                       )}
                       {property.isVerified && (
-                        <span className="bg-green-500 text-white px-2 py-1 rounded text-xs font-semibold">
+                        <span className="bg-green-500/90 backdrop-blur-sm text-white px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg">
                           Verified
                         </span>
                       )}
-                      {property.purpose === "rent" && (
-                        <span className="bg-blue-500 text-white px-2 py-1 rounded text-xs font-semibold">
-                          For Rent
-                        </span>
-                      )}
+                      <span className="bg-blue-600/90 backdrop-blur-sm text-white px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg">
+                        For {property.purpose === "rent" ? "Rent" : "Sale"}
+                      </span>
                     </div>
-                    <button className="absolute top-3 right-3 bg-white hover:bg-gray-100 p-2 rounded-full shadow-md">
-                      ♡
+                    
+                    <button className="absolute top-4 right-4 bg-white/90 backdrop-blur-md hover:bg-red-500 hover:text-white p-3 rounded-2xl shadow-xl transition-all duration-300 text-gray-700 group/fav">
+                      <span className="transform group-hover/fav:scale-125 transition-transform inline-block">♡</span>
                     </button>
+
+                    <div className="absolute bottom-4 left-4 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                       <span className="text-xs font-bold uppercase tracking-widest bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-lg flex items-center">
+                         <span className="w-1.5 h-1.5 bg-blue-400 rounded-full mr-2 animate-pulse"></span>
+                         {property.images?.length || 1} Photos
+                       </span>
+                    </div>
                   </div>
-                  <div className="flex-1 p-6">
+                  
+                  <div className="flex-1 p-8">
                     <div className="flex flex-col h-full">
-                      <div className="flex justify-between items-start mb-3">
+                      <div className="flex justify-between items-start mb-4">
                         <div className="flex-1">
                           <h3
-                            className="font-semibold text-gray-900 text-lg mb-1 hover:text-blue-600 cursor-pointer"
+                            className="text-2xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors cursor-pointer leading-tight"
                             onClick={() =>
                               navigate(`/property/${property._id}`)
                             }
                           >
                             {property.title}
                           </h3>
-                          <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
-                            <span>
-                              📍{" "}
-                              {property.location?.area ||
-                                property.location?.city ||
-                                "Abu Dhabi"}
-                            </span>
-                            <span className="text-gray-300">•</span>
-                            <span className="capitalize">
-                              {getCategoryLabel(property.category)}
-                            </span>
+                          <div className="flex items-center gap-4">
+                             <div className="flex items-center text-gray-500 font-medium">
+                                <span className="mr-1.5">📍</span>
+                                {property.location?.area || property.location?.city || "Abu Dhabi"}
+                             </div>
+                             <div className="w-1 h-1 bg-gray-300 rounded-full"></div>
+                             <div className="text-blue-600 font-bold uppercase text-[10px] tracking-widest bg-blue-50 px-2 py-0.5 rounded-lg">
+                                {getCategoryLabel(property.category)}
+                             </div>
                           </div>
                         </div>
-                        <div className="text-2xl font-bold text-blue-600 whitespace-nowrap ml-4">
-                          AED {property.price?.toLocaleString()}
+                        <div className="text-right">
+                           <div className="text-3xl font-black text-gray-900 tracking-tighter">
+                             <span className="text-blue-600 text-base font-bold mr-1 italic">AED</span>
+                             {property.price?.toLocaleString()}
+                           </div>
+                           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">
+                              All-inclusive Price
+                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-6 text-sm text-gray-600 mb-4">
-                        <span className="flex items-center gap-1">
-                          <span className="text-lg">🛏️</span>
-                          {property.bedrooms} bed
-                          {property.bedrooms !== 1 ? "s" : ""}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <span className="text-lg">🚿</span>
-                          {property.bathrooms} bath
-                          {property.bathrooms !== 1 ? "s" : ""}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <span className="text-lg">📐</span>
-                          {property.area?.toLocaleString()}{" "}
-                          {property.areaUnit || "sqft"}
-                        </span>
-                        {property.furnishing && (
-                          <span className="flex items-center gap-1 capitalize">
-                            <span className="text-lg">🛋️</span>
-                            {property.furnishing}
-                          </span>
-                        )}
+
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 bg-gray-50/50 rounded-3xl p-6 mb-6 border border-gray-100 group-hover:bg-blue-50/30 transition-colors duration-500">
+                        <div className="flex flex-col items-center justify-center">
+                          <span className="text-2xl mb-1">🛏️</span>
+                          <span className="text-sm font-black text-gray-900">{property.bedrooms} <span className="text-[10px] text-gray-400 uppercase tracking-widest block text-center mt-0.5">Beds</span></span>
+                        </div>
+                        <div className="flex flex-col items-center justify-center border-l border-gray-200 lg:border-l">
+                          <span className="text-2xl mb-1">🚿</span>
+                          <span className="text-sm font-black text-gray-900">{property.bathrooms} <span className="text-[10px] text-gray-400 uppercase tracking-widest block text-center mt-0.5">Baths</span></span>
+                        </div>
+                        <div className="flex flex-col items-center justify-center border-l border-gray-200">
+                          <span className="text-2xl mb-1">📐</span>
+                          <span className="text-sm font-black text-gray-900">{property.area?.toLocaleString()} <span className="text-[10px] text-gray-400 uppercase tracking-widest block text-center mt-0.5">{property.areaUnit || "sqft"}</span></span>
+                        </div>
+                        <div className="flex flex-col items-center justify-center border-l border-gray-200">
+                          <span className="text-2xl mb-1">🛋️</span>
+                          <span className="text-sm font-black text-gray-900 capitalize">{property.furnishing || "—"} <span className="text-[10px] text-gray-400 uppercase tracking-widest block text-center mt-0.5">Furnished</span></span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 mb-4 flex-wrap">
-                        {property.features
-                          ?.slice(0, 3)
-                          .map((feature, index) => (
-                            <span
-                              key={index}
-                              className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-medium capitalize"
-                            >
-                              {feature}
-                            </span>
-                          ))}
-                        {property.amenities?.building
-                          ?.slice(0, 2)
-                          .map((amenity, index) => (
-                            <span
-                              key={`building-${index}`}
-                              className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-medium capitalize"
-                            >
-                              {amenity}
-                            </span>
-                          ))}
-                      </div>
-                      <div className="flex justify-between items-center mt-auto pt-4 border-t border-gray-100">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-gray-500">
-                            {formatDate(property.createdAt)}
-                          </span>
-                          <span className="text-gray-300">•</span>
-                          <div className="flex items-center gap-1">
-                            <span className="text-sm text-gray-600">
-                              {property.listedBy?.name || "Property Owner"}
-                            </span>
-                            {property.listedBy?.verified && (
-                              <span className="text-blue-500 text-xs">✓</span>
-                            )}
+
+                      <div className="flex justify-between items-center mt-auto">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center font-bold text-gray-400 text-xs uppercase border border-white shadow-sm overflow-hidden">
+                             {property.listedBy?.profileImage ? (
+                               <img src={property.listedBy.profileImage} className="w-full h-full object-cover" alt="" />
+                             ) : (
+                               property.listedBy?.name?.charAt(0) || "U"
+                             )}
+                          </div>
+                          <div>
+                            <div className="text-sm font-bold text-gray-900 flex items-center">
+                              {property.listedBy?.name || "Premium Host"}
+                              {property.listedBy?.verified && <span className="ml-1 text-blue-500 text-[10px]">✓</span>}
+                            </div>
+                            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                               Listed {formatDate(property.createdAt)}
+                            </div>
                           </div>
                         </div>
-                        <div className="flex gap-2">
-                          <button className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition duration-200">
-                            📞 Call
+                        
+                        <div className="flex gap-3">
+                          <button className="px-6 py-3 border border-gray-200 rounded-2xl text-sm font-bold text-gray-600 hover:bg-gray-50 transition-all duration-300 transform active:scale-95 shadow-sm">
+                            Contact
                           </button>
                           <button
                             onClick={() =>
                               navigate(`/property/${property._id}`)
                             }
-                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition duration-200"
+                            className="px-8 py-3 bg-gray-900 hover:bg-blue-600 text-white rounded-2xl text-sm font-bold transition-all duration-500 transform active:scale-95 shadow-xl hover:shadow-blue-200"
                           >
-                            View Details
+                            Explore Property
                           </button>
                         </div>
                       </div>

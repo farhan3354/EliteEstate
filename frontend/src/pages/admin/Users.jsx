@@ -58,6 +58,8 @@ const AdminUsers = () => {
   useEffect(() => {
     if (token) {
       fetchUsers();
+    } else {
+      setLoading(false);
     }
   }, [token, pagination.page, filterStatus]);
 

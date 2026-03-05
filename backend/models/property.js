@@ -23,16 +23,7 @@ const propertySchema = new mongoose.Schema(
     category: {
       type: String,
       required: true,
-      enum: [
-        "apartments",
-        "villas",
-        "townhouses",
-        "commercial",
-        "land",
-        "rooms",
-        "warehouses",
-        "buildings",
-      ],
+      // Common categories: apartments, villas, townhouses, commercial, land, rooms, warehouses, buildings
     },
     bedrooms: {
       type: Number,
