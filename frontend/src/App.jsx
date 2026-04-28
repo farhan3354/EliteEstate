@@ -50,12 +50,14 @@ import OwnerBookings from "./component/owner/OwnerBookings";
 import UserBookings from "./component/userDashboard/UserBookings";
 import CategoriesPage from "./pages/CategoriesPage";
 import ManageCategories from "./pages/admin/ManageCategories";
+import SecureNetWebsite from "./component/ServiceWebsite";
+import FullWebsite from "./component/servicesWebsite/FullWebsite";
 
 export default function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Layout />}>
+        {/* <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
@@ -70,16 +72,16 @@ export default function App() {
           <Route path="categories" element={<CategoriesPage />} />
           <Route path="task" element={<ArrayP />} />
           <Route path="*" element={<NotFound />} />
-        </Route>
+        </Route> */}
         {/* <Route element={<ProtectRoute allowedRoles={["user"]} />}> */}
-        <Route path="/user-dashboard" element={<UserLayout />}>
+        {/* <Route path="/user-dashboard" element={<UserLayout />}>
           <Route index element={<Dashboard />} />
           <Route path="favorites" element={<Favorites />} />
           <Route path="bookings" element={<UserBookings />} />
           <Route path="profile" element={<Profile />} />
-        </Route>
+        </Route> */}
         {/* <Route element={<ProtectRoute allowedRoles={["owner"]} />}> */}
-        <Route path="/owner-dashboard" element={<OwnerLayout />}>
+        {/* <Route path="/owner-dashboard" element={<OwnerLayout />}>
           <Route index element={<OwnerDashboard />} />
           <Route path="add-property" element={<AddProperty />} />
           <Route path="my-properties" element={<OWnerProperties />} />
@@ -90,10 +92,10 @@ export default function App() {
           <Route path="assigned-agents" element={<OwnerAssignedAgents />} />
           <Route path="viewing-requests" element={<OwnerBookings />} />
           <Route path="profile" element={<Profile />} />
-        </Route>
+        </Route> */}
         {/* </Route> */}
         {/* <Route element={<ProtectRoute allowedRoles={["agent"]} />}> */}
-        <Route path="/agent-dashboard" element={<AgentLayout />}>
+        {/* <Route path="/agent-dashboard" element={<AgentLayout />}>
           <Route index element={<AgentDashboard />} />
           <Route path="listings" element={<AgentListings />} />
           <Route path="clients" element={<AgentClients />} />
@@ -103,9 +105,9 @@ export default function App() {
           <Route path="owner-property" element={<AgentAssignedProperties />} />
           <Route path="avala" element={<AgentAvailability />} />
           <Route path="profile" element={<OwnAgentProfile />} />
-        </Route>
+        </Route> */}
         {/* </Route> */}
-        <Route element={<ProtectRoute allowedRoles={["admin"]} />}>
+        {/* <Route element={<ProtectRoute allowedRoles={["admin"]} />}>
         <Route path="/admin-dashboard" element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
           <Route path="users" element={<AdminUsers />} />
@@ -118,7 +120,8 @@ export default function App() {
           <Route path="reviews" element={<AdminReviews />} />
           <Route path="commissions" element={<AdminCommissions />} />
         </Route>
-        </Route>
+        </Route> */}
+        <Route path="/services" element={<FullWebsite />} />
       </Routes>
     </Router>
   );

@@ -503,12 +503,56 @@ export const getAgentAssignments = async (req, res) => {
       })
     );
 
+    // Calculate comprehensive stats for the frontend
+    const totalAssignments = assignments.length;
+    const activeAssignments = assignments.filter(
+      (a) => a.status === "active" || a.status === "accepted"
+    ).length;
+    const completedAssignments = assignments.filter(
+      (a) => a.status === "completed"
+    ).length;
+    const rejectedAssignments = assignments.filter(
+      (a) => a.status === "rejected"
+    ).length;
+
+    // Calculate total potential commission (sum of property price * commissionRate for active assignments)
+    let totalPotentialCommissionValue = 0;
+    assignments.forEach((a) => {
+      if (
+        (a.status === "active" || a.status === "accepted") &&
+        a.property?.price &&
+        a.commissionAgreement?.commissionRate
+      ) {
+        totalPotentialCommissionValue +=
+          (a.property.price * a.commissionAgreement.commissionRate) / 100;
+      }
+    });
+
+    // Calculate acceptance rate = accepted / (accepted + rejected) * 100
+    const decidedCount = completedAssignments + rejectedAssignments + activeAssignments;
+    const acceptanceRateValue =
+      decidedCount > 0
+        ? Math.round((activeAssignments + completedAssignments) / decidedCount * 100)
+        : 0;
+
     res.status(200).json({
       success: true,
       data: {
         assignments,
-        pendingCount: assignments.filter((a) => a.status === "pending").length,
-        activeCount: assignments.filter((a) => a.status === "accepted").length,
+        stats: {
+          totalAssignments,
+          activeAssignments,
+          completedAssignments,
+          pendingAssignments: assignments.filter((a) => a.status === "pending").length,
+          totalPotentialCommission: `AED ${Math.round(totalPotentialCommissionValue).toLocaleString()}`,
+          acceptanceRate: `${acceptanceRateValue}%`,
+        },
+        agentInfo: {
+          totalListings: agent.totalListings || 0,
+          activeListings: agent.activeListings || 0,
+          soldListings: agent.soldListings || 0,
+          rating: agent.rating || { average: 0, totalReviews: 0 },
+        },
       },
     });
   } catch (error) {

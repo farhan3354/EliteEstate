@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useSelector } from "react-redux";
 import {
   FiHome,
   FiMessageSquare,
@@ -10,52 +11,191 @@ import {
   FiEdit,
   FiEye,
   FiCalendar,
+  FiRefreshCw,
+  FiAlertCircle,
 } from "react-icons/fi";
 import { MdApartment } from "react-icons/md";
+import { propertyAPI, inquiryAPI, bookingAPI } from "../../services/api";
+import api from "../../utils/routeapi";
 
 const OwnerDashboard = () => {
-  const stats = [
+  const { user, token } = useSelector((state) => state.auth);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [stats, setStats] = useState({
+    totalProperties: 0,
+    activeListings: 0,
+    pendingInquiries: 0,
+    totalRevenue: 0,
+    viewingRequests: 0,
+    assignedAgents: 0,
+  });
+  const [recentProperties, setRecentProperties] = useState([]);
+  const [recentActivity, setRecentActivity] = useState([]);
+  const [propertyStatusBreakdown, setPropertyStatusBreakdown] = useState({
+    active: 0,
+    pending: 0,
+    rented: 0,
+    sold: 0,
+  });
+
+  const fetchDashboard = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const [propertiesRes, inquiriesRes, bookingsRes] = await Promise.allSettled([
+        propertyAPI.getUserProperties(),
+        inquiryAPI.getSellerInquiries(),
+        bookingAPI.getLandlordBookings(),
+      ]);
+
+      // Process properties
+      let properties = [];
+      if (propertiesRes.status === "fulfilled") {
+        properties =
+          propertiesRes.value.data?.data?.properties ||
+          propertiesRes.value.data?.data ||
+          [];
+      }
+
+      // Process inquiries
+      let inquiries = [];
+      let inquiryStats = { total: 0, new: 0 };
+      if (inquiriesRes.status === "fulfilled") {
+        inquiries =
+          inquiriesRes.value.data?.data?.inquiries ||
+          inquiriesRes.value.data?.data ||
+          [];
+        inquiryStats = inquiriesRes.value.data?.data?.stats || {
+          total: inquiries.length,
+          new: inquiries.filter((i) => i.status === "new" || i.isRead === false)
+            .length,
+        };
+      }
+
+      // Process bookings
+      let bookings = [];
+      if (bookingsRes.status === "fulfilled") {
+        bookings =
+          bookingsRes.value.data?.data?.bookings ||
+          bookingsRes.value.data?.data ||
+          [];
+      }
+
+      // Process assigned agents from owner profile
+      let assignedAgentsCount = 0;
+      try {
+        const ownerRes = await api.get("/agents/owner/assignments", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const ownerData = ownerRes.data?.data;
+        if (ownerData) {
+          assignedAgentsCount = ownerData.stats?.activeAgents || ownerData.assignments?.filter((a) => a.agreement?.status === "active").length || 0;
+        }
+      } catch {
+        // Silently ignore if owner profile not set up yet
+      }
+
+      // Calculate property status breakdown
+      const active = properties.filter((p) => p.status === "active").length;
+      const pending = properties.filter((p) => p.status === "pending").length;
+      const rented = properties.filter((p) => p.status === "rented").length;
+      const sold = properties.filter((p) => p.status === "sold").length;
+
+      setPropertyStatusBreakdown({ active, pending, rented, sold });
+
+      // Calculate revenue (sum of rented properties monthly rent estimates)
+      const estimatedRevenue = properties
+        .filter((p) => p.status === "rented" && p.price)
+        .reduce((sum, p) => sum + (p.purpose === "rent" ? p.price : 0), 0);
+
+      setStats({
+        totalProperties: properties.length,
+        activeListings: active,
+        pendingInquiries: inquiryStats.new || 0,
+        totalRevenue: estimatedRevenue,
+        viewingRequests: bookings.filter((b) => b.status === "pending").length,
+        assignedAgents: assignedAgentsCount,
+      });
+
+      // Recent properties (last 3)
+      const sorted = [...properties].sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      );
+      setRecentProperties(sorted.slice(0, 5));
+
+      // Build recent activity from inquiries + bookings
+      const activities = [];
+      inquiries.slice(0, 3).forEach((inq) => {
+        activities.push({
+          id: `inq-${inq._id}`,
+          action: `New inquiry for ${inq.property?.title || "your property"}`,
+          time: new Date(inq.createdAt).toLocaleDateString(),
+          icon: <FiMail className="text-blue-500" />,
+          date: new Date(inq.createdAt),
+        });
+      });
+      bookings.slice(0, 3).forEach((bk) => {
+        activities.push({
+          id: `bk-${bk._id}`,
+          action: `Viewing request for ${bk.property?.title || "your property"}`,
+          time: new Date(bk.createdAt || bk.date).toLocaleDateString(),
+          icon: <FiCalendar className="text-orange-500" />,
+          date: new Date(bk.createdAt || bk.date),
+        });
+      });
+      activities.sort((a, b) => b.date - a.date);
+      setRecentActivity(activities.slice(0, 5));
+    } catch (err) {
+      console.error("Owner dashboard fetch error:", err);
+      setError("Failed to load dashboard data. Please refresh.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboard();
+  }, []);
+
+  const statCards = [
     {
       label: "Total Properties",
-      value: "5",
+      value: stats.totalProperties,
       icon: <MdApartment />,
       color: "bg-blue-500",
-      iconColor: "text-white",
     },
     {
       label: "Active Listings",
-      value: "3",
+      value: stats.activeListings,
       icon: <FiHome />,
       color: "bg-green-500",
-      iconColor: "text-white",
     },
     {
       label: "Pending Inquiries",
-      value: "12",
+      value: stats.pendingInquiries,
       icon: <FiMessageSquare />,
       color: "bg-yellow-500",
-      iconColor: "text-white",
-    },
-    {
-      label: "Total Revenue",
-      value: "$25,400",
-      icon: <FiDollarSign />,
-      color: "bg-purple-500",
-      iconColor: "text-white",
     },
     {
       label: "Viewing Requests",
-      value: "8",
+      value: stats.viewingRequests,
       icon: <FiCalendar />,
       color: "bg-orange-500",
-      iconColor: "text-white",
     },
-  ];
-
-  const recentProperties = [
-    { id: 1, name: "Modern Villa", status: "Active", inquiries: 5 },
-    { id: 2, name: "City Apartment", status: "Pending", inquiries: 2 },
-    { id: 3, name: "Beach House", status: "Rented", inquiries: 0 },
+    {
+      label: "Assigned Agents",
+      value: stats.assignedAgents,
+      icon: <FiUsers />,
+      color: "bg-purple-500",
+    },
+    {
+      label: "Est. Monthly Revenue",
+      value: stats.totalRevenue > 0 ? `AED ${stats.totalRevenue.toLocaleString()}` : "–",
+      icon: <FiDollarSign />,
+      color: "bg-indigo-500",
+    },
   ];
 
   const quickActions = [
@@ -93,6 +233,15 @@ const OwnerDashboard = () => {
     },
   ];
 
+  if (loading) {
+    return (
+      <div className="p-6 flex flex-col justify-center items-center h-64 space-y-4">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+        <p className="text-gray-600">Loading your dashboard...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6">
       {/* Header */}
@@ -100,32 +249,49 @@ const OwnerDashboard = () => {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Owner Dashboard</h1>
           <p className="text-gray-600 mt-1">
-            Welcome back! Here's your property overview
+            Welcome back, {user?.name || "Owner"}! Here's your property overview.
           </p>
         </div>
-        <Link
-          to="/owner-dashboard/add-property"
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          <FiPlus className="h-5 w-5" />
-          Add New Property
-        </Link>
+        <div className="flex gap-3">
+          <button
+            onClick={fetchDashboard}
+            className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm"
+          >
+            <FiRefreshCw className="h-4 w-4" />
+            Refresh
+          </button>
+          <Link
+            to="/owner-dashboard/add-property"
+            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <FiPlus className="h-5 w-5" />
+            Add New Property
+          </Link>
+        </div>
       </div>
 
+      {/* Error Banner */}
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
+          <FiAlertCircle className="h-5 w-5 text-red-600" />
+          <p className="text-red-800 text-sm">{error}</p>
+        </div>
+      )}
+
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {stats.map((stat, index) => (
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+        {statCards.map((stat, index) => (
           <div
             key={index}
-            className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow"
+            className="bg-white rounded-xl shadow-sm p-4 hover:shadow-md transition-shadow"
           >
-            <div className="flex items-center">
-              <div className={`${stat.color} p-3 rounded-lg`}>
-                <div className={`${stat.iconColor} text-xl`}>{stat.icon}</div>
+            <div className="flex items-center gap-3">
+              <div className={`${stat.color} p-2.5 rounded-lg`}>
+                <div className="text-white text-lg">{stat.icon}</div>
               </div>
-              <div className="ml-4">
-                <p className="text-sm text-gray-600">{stat.label}</p>
-                <p className="text-2xl font-bold mt-1">{stat.value}</p>
+              <div>
+                <p className="text-xs text-gray-600 leading-tight">{stat.label}</p>
+                <p className="text-xl font-bold mt-0.5">{stat.value}</p>
               </div>
             </div>
           </div>
@@ -133,230 +299,185 @@ const OwnerDashboard = () => {
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-white rounded-lg shadow p-6 mb-8">
+      <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
         <h2 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {quickActions.map((action, index) => (
             <Link
               key={index}
               to={action.link}
-              className={`p-4 border-2 border-dashed border-gray-300 rounded-lg text-center ${action.color} transition-all hover:shadow-sm`}
+              className={`p-4 border-2 border-dashed border-gray-300 rounded-xl text-center ${action.color} transition-all hover:shadow-sm`}
             >
               <div
                 className={`${action.iconBg} w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3`}
               >
                 {action.icon}
               </div>
-              <div className="font-medium text-gray-900 mb-1">
-                {action.title}
-              </div>
-              <div className="text-sm text-gray-600">{action.description}</div>
+              <div className="font-medium text-gray-900 mb-1">{action.title}</div>
+              <div className="text-xs text-gray-600">{action.description}</div>
             </Link>
           ))}
         </div>
       </div>
 
-      {/* Recent Properties */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h2 className="text-lg font-bold text-gray-900">
-              Recent Properties
-            </h2>
-            <p className="text-sm text-gray-600 mt-1">
-              Your recently added properties
-            </p>
-          </div>
-          <Link
-            to="/owner-dashboard/my-properties"
-            className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
-          >
-            View All
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+      {/* Bottom Grid — Recent Properties + Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        {/* Recent Properties */}
+        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-bold text-gray-900">Recent Properties</h2>
+            <Link
+              to="/owner-dashboard/my-properties"
+              className="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5l7 7-7 7"
-              />
-            </svg>
-          </Link>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Property
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Inquiries
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {recentProperties.map((property) => (
-                <tr key={property.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                        <MdApartment className="h-5 w-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <div className="font-medium text-gray-900">
-                          {property.name}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          Added 2 days ago
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        property.status === "Active"
-                          ? "bg-green-100 text-green-800"
-                          : property.status === "Pending"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-gray-100 text-gray-800"
-                      }`}
-                    >
-                      {property.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center">
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-2">
-                        <FiMessageSquare className="h-4 w-4 text-blue-600" />
-                      </div>
-                      <div>
-                        <div className="font-bold text-gray-900">
-                          {property.inquiries}
-                        </div>
-                        <div className="text-xs text-gray-500">inquiries</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center space-x-3">
-                      <Link
-                        to={`/owner-dashboard/property/${property.id}/edit`}
-                        className="flex items-center gap-1 text-blue-600 hover:text-blue-800"
-                      >
-                        <FiEdit className="h-4 w-4" />
-                        <span>Edit</span>
-                      </Link>
-                      <button className="flex items-center gap-1 text-gray-600 hover:text-gray-800">
-                        <FiEye className="h-4 w-4" />
-                        <span>View</span>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Additional Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-        {/* Properties by Status */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-4">
-            Properties by Status
-          </h3>
-          <div className="space-y-4">
-            {[
-              {
-                label: "Active",
-                value: 3,
-                color: "bg-green-500",
-                percentage: "60%",
-              },
-              {
-                label: "Pending",
-                value: 1,
-                color: "bg-yellow-500",
-                percentage: "20%",
-              },
-              {
-                label: "Rented",
-                value: 1,
-                color: "bg-blue-500",
-                percentage: "20%",
-              },
-            ].map((item, index) => (
-              <div key={index}>
-                <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-700">
-                    {item.label}
-                  </span>
-                  <span className="text-sm font-bold text-gray-900">
-                    {item.value} properties
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className={`${item.color} h-2 rounded-full`}
-                    style={{ width: item.percentage }}
-                  ></div>
-                </div>
-              </div>
-            ))}
+              View All →
+            </Link>
           </div>
+          {recentProperties.length === 0 ? (
+            <div className="text-center py-8">
+              <MdApartment className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+              <p className="text-gray-500 mb-3">No properties listed yet.</p>
+              <Link
+                to="/owner-dashboard/add-property"
+                className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm"
+              >
+                <FiPlus className="h-4 w-4" />
+                Add Your First Property
+              </Link>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-100">
+                <thead>
+                  <tr>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Property</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {recentProperties.map((property) => (
+                    <tr key={property._id} className="hover:bg-gray-50">
+                      <td className="px-3 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
+                            {property.images?.[0] ? (
+                              <img src={property.images[0]} alt={property.title} className="w-full h-full object-cover" />
+                            ) : (
+                              <MdApartment className="h-5 w-5 text-blue-500" />
+                            )}
+                          </div>
+                          <div>
+                            <div className="font-medium text-gray-900 text-sm truncate max-w-[140px]">
+                              {property.title}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {property.location?.city || property.location?.area || ""}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-3 py-3">
+                        <span
+                          className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            property.status === "active"
+                              ? "bg-green-100 text-green-800"
+                              : property.status === "pending"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : property.status === "rented"
+                              ? "bg-blue-100 text-blue-800"
+                              : property.status === "sold"
+                              ? "bg-gray-100 text-gray-800"
+                              : "bg-gray-100 text-gray-700"
+                          }`}
+                        >
+                          {property.status}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3">
+                        <span className="text-sm font-bold text-gray-900">
+                          AED {property.price?.toLocaleString()}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3">
+                        <div className="flex items-center gap-2">
+                          <Link
+                            to={`/owner-dashboard/edit-property/${property._id}`}
+                            className="flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm"
+                          >
+                            <FiEdit className="h-4 w-4" />
+                          </Link>
+                          <Link
+                            to={`/owner-dashboard/property/${property._id}`}
+                            className="flex items-center gap-1 text-gray-600 hover:text-gray-800 text-sm"
+                          >
+                            <FiEye className="h-4 w-4" />
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
         {/* Recent Activity */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-4">
-            Recent Activity
-          </h3>
-          <div className="space-y-4">
-            {[
-              {
-                action: "New inquiry for Modern Villa",
-                time: "2 hours ago",
-                icon: <FiMail className="text-blue-500" />,
-              },
-              {
-                action: "Agent assigned to City Apartment",
-                time: "1 day ago",
-                icon: <FiUsers className="text-green-500" />,
-              },
-              {
-                action: "Rent payment received",
-                time: "2 days ago",
-                icon: <FiDollarSign className="text-purple-500" />,
-              },
-            ].map((activity, index) => (
-              <div key={index} className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-                  {activity.icon}
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <h3 className="text-lg font-bold text-gray-900 mb-4">Recent Activity</h3>
+          {recentActivity.length === 0 ? (
+            <p className="text-gray-500 text-sm text-center py-4">No recent activity</p>
+          ) : (
+            <div className="space-y-4">
+              {recentActivity.map((activity) => (
+                <div key={activity.id} className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                    {activity.icon}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{activity.action}</p>
+                    <p className="text-xs text-gray-500">{activity.time}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">
-                    {activity.action}
-                  </p>
-                  <p className="text-xs text-gray-500">{activity.time}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
+      </div>
+
+      {/* Properties by Status */}
+      <div className="bg-white rounded-xl shadow-sm p-6">
+        <h3 className="text-lg font-bold text-gray-900 mb-4">Properties by Status</h3>
+        {stats.totalProperties === 0 ? (
+          <p className="text-gray-500 text-sm text-center py-2">No properties yet.</p>
+        ) : (
+          <div className="space-y-3">
+            {[
+              { label: "Active", value: propertyStatusBreakdown.active, color: "bg-green-500" },
+              { label: "Pending", value: propertyStatusBreakdown.pending, color: "bg-yellow-500" },
+              { label: "Rented", value: propertyStatusBreakdown.rented, color: "bg-blue-500" },
+              { label: "Sold", value: propertyStatusBreakdown.sold, color: "bg-gray-500" },
+            ].map((item, index) => {
+              const pct = stats.totalProperties > 0 ? Math.round((item.value / stats.totalProperties) * 100) : 0;
+              return (
+                <div key={index}>
+                  <div className="flex justify-between mb-1">
+                    <span className="text-sm font-medium text-gray-700">{item.label}</span>
+                    <span className="text-sm font-bold text-gray-900">{item.value} properties</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className={`${item.color} h-2 rounded-full transition-all`}
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

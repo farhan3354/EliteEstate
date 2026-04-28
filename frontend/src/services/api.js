@@ -95,8 +95,16 @@ export const agentAPI = {
   getMyProfile: () => api.get("/agent-dashboard/profile"),
   updateMyProfile: (data) => api.patch("/agent-dashboard/profile", data),
   getClients: () => api.get("/agent-dashboard/clients"),
-  getAssignedProperties: () => api.get("/agent-assignment/agent/assigned-properties"),
-  updateAssignmentStatus: (id, status) => api.put(`/agent-assignment/assignment/${id}/status`, { status }),
+  // Correct routes matching index.js: app.use("/api/v1/agents", assignRoutes)
+  getAssignedProperties: () => api.get("/agents/agent/assignments"),
+  updateAssignmentStatus: (id, status) => api.put(`/agents/assignment/${id}/status`, { status }),
+  // Owner assignment management
+  getOwnerAssignments: () => api.get("/agents/owner/assignments"),
+  terminateAssignment: (id) => api.delete(`/agents/assignments/${id}`),
+  extendAssignment: (id, data) => api.put(`/agents/assignments/${id}/extend`, data),
+  getVerifiedAgents: (params) => api.get("/agents/verified", { params }),
+  getOwnerProperties: () => api.get("/agents/owner/properties"),
+  createAssignment: (data) => api.post("/agents/assign", data),
 };
 
 // User APIs
