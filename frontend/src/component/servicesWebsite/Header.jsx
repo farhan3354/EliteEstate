@@ -1,5 +1,6 @@
 import React from "react";
 import { FiPhone } from "react-icons/fi";
+import { Link } from "react-router-dom";
 
 const Header = () => {
   return (
@@ -16,14 +17,32 @@ const Header = () => {
             SECURENET
           </span>
         </div>
-        
-        <a
-          href="tel:+971509014421"
-          className="inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-amber-500/10 border border-amber-500/50 rounded-lg text-amber-500 hover:bg-amber-500/20 transition-all duration-300 text-xs sm:text-sm font-semibold whitespace-nowrap"
-        >
-          <FiPhone className="w-3 h-3 sm:w-4 sm:h-4" />
-          +971 50 901 4421
-        </a>
+
+        <div className="flex items-center gap-3">
+          <Link
+            to="/profile"
+            className="inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-amber-500/10 border border-amber-500/50 rounded-lg text-amber-500 hover:bg-amber-500/20 transition-all duration-300 text-xs sm:text-sm font-semibold whitespace-nowrap"
+          >
+            Profile
+          </Link>
+
+          <a
+            href="/profile?print=1"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-all duration-300 text-xs sm:text-sm font-semibold whitespace-nowrap"
+          >
+            Download Profile
+          </a>
+
+          <a
+            href="tel:+971509014421"
+            className="inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-amber-500/10 border border-amber-500/50 rounded-lg text-amber-500 hover:bg-amber-500/20 transition-all duration-300 text-xs sm:text-sm font-semibold whitespace-nowrap"
+          >
+            <FiPhone className="w-3 h-3 sm:w-4 sm:h-4" />
+            +971 50 901 4421
+          </a>
+        </div>
       </div>
     </header>
   );

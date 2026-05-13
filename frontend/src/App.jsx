@@ -52,6 +52,7 @@ import CategoriesPage from "./pages/CategoriesPage";
 import ManageCategories from "./pages/admin/ManageCategories";
 import SecureNetWebsite from "./component/ServiceWebsite";
 import FullWebsite from "./component/servicesWebsite/FullWebsite";
+import CompanyProfilePDF from "./component/servicesWebsite/CompanyProfilePDF";
 
 export default function App() {
   return (
@@ -121,7 +122,8 @@ export default function App() {
           <Route path="commissions" element={<AdminCommissions />} />
         </Route>
         </Route> */}
-        <Route path="/services" element={<FullWebsite />} />
+        <Route path="/" element={<FullWebsite />} />
+        <Route path="/profile" element={<CompanyProfilePDF />} />
       </Routes>
     </Router>
   );

@@ -1,4 +1,5 @@
-import React, { useRef } from "react";
+import React, { useRef, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import {
   FiWifi,
   FiZap,
@@ -29,6 +30,16 @@ import projectImage4 from "../../assets/al.jpeg";
 
 const CompanyProfilePDF = () => {
   const pdfRef = useRef();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && location.search.includes("print")) {
+      // small delay to allow page render before print dialog
+      setTimeout(() => {
+        window.print();
+      }, 400);
+    }
+  }, [location.search]);
 
   const companyInfo = {
     name: "SECURENET",
